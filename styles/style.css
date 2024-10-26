@@ -10,62 +10,63 @@
 body {
   display: flex;
   flex-direction: column;
-  
+
   min-height: 100vh;
-  
+
   min-width: 900px;
 }
 
 body > main {
-    display: grid;
-    width: 100%;
-    height: 90vh;    
-    grid-template-columns: 25vw 1fr 25vw;
-    grid-template-rows: 15vh 1fr;
-    grid-template-areas: 
+  display: grid;
+  width: 100%;
+  height: 90vh;
+  grid-template-columns: 25vw 1fr 25vw;
+  grid-template-rows: 15vh 1fr;
+  grid-template-areas:
     'header header header'
     'playerArea diceArea enemyArea';
 }
 
 main > header {
-    grid-area: header;
+  grid-area: header;
 }
 
 .playerArea {
-    grid-area: playerArea;
+  grid-area: playerArea;
 }
 
 .enemyArea {
-    grid-area: enemyArea;
+  grid-area: enemyArea;
 }
 
 .rollingArea {
-    grid-area: diceArea;
+  grid-area: diceArea;
 }
 
 main > section {
-    margin: 2rem;
-    border: 2px solid black;
+  margin: 2rem;
+  border: 2px solid black;
 }
 
-.enemyArea, .playerArea {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+.enemyArea,
+.playerArea {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.playerUnit, .enemyUnit {
-    margin: 0.5rem;
-    border: 1px solid black;
-    display: flex;
-    justify-content: space-between;
-    padding: 0.2rem;
+.playerUnit,
+.enemyUnit {
+  margin: 0.5rem;
+  border: 1px solid black;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.2rem;
 }
 
 .playerDice {
-    height: 95px;
-    width: 95px;
-    padding: 0.1rem;
-    border: 1px solid black;
-
+  height: 95px;
+  width: 95px;
+  padding: 0.1rem;
+  border: 1px solid black;
 }
