@@ -39,7 +39,7 @@ class PlayerUnit {
     this.name = name;
     this.currentHP = health;
     this.totalHP = health;
-    this.diceSides = diceSides; //Make a function to randomly generate
+    this.diceSides = diceSides; // Make a function to randomly generate
     game.addNewUnit(this, 'ally');
   }
 }
@@ -49,7 +49,7 @@ class EnemyUnit {
     this.name = name;
     this.currentHP = health;
     this.totalHP = health;
-    this.diceSides = diceSides; //Make a function to randomly generate
+    this.diceSides = diceSides; // Make a function to randomly generate
     game.addNewUnit(this, 'foe');
   }
 }
