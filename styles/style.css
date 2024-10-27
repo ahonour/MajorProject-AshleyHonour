@@ -64,7 +64,8 @@ main > section {
   padding: 0.2rem;
 }
 
-.playerDice {
+.playerDice,
+.enemyDice {
   height: 95px;
   width: 95px;
   padding: 0.1rem;
