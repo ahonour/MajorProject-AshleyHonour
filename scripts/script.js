@@ -5,6 +5,7 @@ const game = {
   isRunning: false,
   playerUnits: [],
   enemyUnits: [],
+  turnPhase: 'enemy',
   DOM: document.querySelector('#game'),
   playerDOM: document.querySelector('#playerArea'),
   enemyDOM: document.querySelector('#enemyArea'),
