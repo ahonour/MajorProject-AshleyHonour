@@ -8,6 +8,7 @@ const game = {
   turnPhase: 'enemy',
   $DOM: $('#game'),
   $playerSection: $('#playerArea'),
+  $rollingSection: $('#rollingArea'),
   $enemySection: $('#enemyArea'),
   addNewUnit(newUnit, allgeiance) {
     if (allgeiance === 'ally') {
@@ -63,6 +64,35 @@ class Dice {
     this.right = right;
     this.farRight = farRight;
   }
+
+  randomSide() {
+    const rand = Math.floor(Math.random()*6);
+    let side;
+    switch (rand) {
+      case 0:
+        side = this.top;
+        break;
+      case 1:
+        side = this.left;
+        break;
+      case 2:
+        side = this.middle;
+        break;
+      case 3:
+        side = this.bottom;
+        break;
+      case 4:
+        side = this.right;
+        break;
+      case 5:
+        side = this.farRight;
+        break;
+      default:
+        side = this.bottom;
+        break;
+    }
+    return side;
+  }
 }
 
 class DiceSide {
@@ -72,8 +102,8 @@ class DiceSide {
   }
 }
 
-game.$DOM.on('click', '.playerDice', (event) => {
-  // Your code here
+game.$playerSection.on('click', '.playerDice', (event) => {
+  
   const $clickedElement = $(event.target);
   const name = $clickedElement.prev().children().first().first().text();
   const otherName = $clickedElement.parent().find('.unitName').text();
@@ -91,3 +121,12 @@ const p1Dice = new Dice(p1Top, p1Left, p1Middle, p1Bottom, p1Right, p1farRight);
 const p1 = new PlayerUnit('Ashley', 10, p1Dice);
 const p2 = new PlayerUnit('Jevan', 4, p1Dice);
 const p3 = new PlayerUnit('Podenco', 2, p1Dice);
+
+const p1RandomSide = p1.dice.randomSide();
+const p1rollingDice = `<div class="playerDice">${p1RandomSide.type} _ ${p1RandomSide.value}</div>`;
+game.$rollingSection.append(p1rollingDice);
+const $clickDice = game.$rollingSection.find('.playerDice');
+const rollingHeight = Math.floor(Math.random() * game.$rollingSection.height());
+const rollingWidth = Math.floor(Math.random() * game.$rollingSection.width());
+$clickDice.css('top', `${rollingHeight}px`);
+$clickDice.css('left', `${rollingWidth}px`);
