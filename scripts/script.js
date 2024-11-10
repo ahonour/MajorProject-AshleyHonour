@@ -120,13 +120,17 @@ game.$playerSection.on('click', '.playerDice', (event) => {
 
 game.$rollingSection.on('click', '.playerDice', (event) => {
   const $clickedElement = $(event.target)
-  if ($clickedElement.hasClass('Ashley')) {
+  game.playerUnits.forEach(unit => {
+    if ($clickedElement.hasClass(unit.name)) {
+      unit.dice.isLocked = true;
+      console.log(`Locked dice for ${unit.name}!`);
+    }
     //diceAnimate(p1, $clickedElement);
-    diceAnimate(p1, $clickedElement);
+    
 
     // const p1randomSide = p1.dice.randomSide();
     // $clickedElement.text(`${p1randomSide.type} _ ${p1randomSide.value}`);
-  }
+  });
 });
 
 $(document).on('click', '#reroll', (event) => {
