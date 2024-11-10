@@ -18,9 +18,11 @@ const game = {
       const currentHP = `<div id='playerUnitCurrentHP${playerNum}'>${newUnit.currentHP}</div>`;
       const playerHP = `<div>Health: ${currentHP}/${newUnit.totalHP}</div>`;
       const playerInfo = `<div class="unitInfo">${playerName}${playerHP}</div>`;
-      const playerDice = `<div class="playerDice" id='playerDice${playerNum}'></div>`;
+      const playerDice = `<div class="playerDice ${newUnit.name}" id='playerDice${playerNum}'></div>`;
       const newUnitTotal = `<div class="playerUnit" id='playerUnit${playerNum}'>${playerInfo}${playerDice}</div>`;
       this.$playerSection.append(newUnitTotal);
+      this.createRollingDice(newUnit);
+      //this.$rollingSection.append(playerDice);
     } else {
       this.enemyUnits.push(newUnit);
       const enemyNum = this.enemyUnits.length - 1;
@@ -33,6 +35,12 @@ const game = {
       this.$enemySection.append(newUnitTotal);
     }
   },
+  createRollingDice(unit) {
+    const $unitRollingDice = $(`<div class="playerDice ${unit.name}"></div>`);
+    this.$rollingSection.append($unitRollingDice);
+    unit.getRandomSide();
+    unit.showCurrentSide($unitRollingDice);
+  },
 };
 
 class PlayerUnit {
@@ -44,9 +52,12 @@ class PlayerUnit {
     game.addNewUnit(this, 'ally');
   }
 
-  rollingAnimation($clickedElement) {    
-    const unitSide = this.dice.randomSide();
-    $clickedElement.text(`${unitSide.value} ${unitSide.type}`);
+  getRandomSide() {    
+    this.dice.currentSide = this.dice.randomSide();        
+  }
+
+  showCurrentSide($unitDice) {
+    $unitDice.text(`${this.dice.currentSide.value} ${this.dice.currentSide.type}`);
   }
 }
 
@@ -69,6 +80,7 @@ class Dice {
     this.right = right;
     this.farRight = farRight;
     this.isLocked = false;
+    this.currentSide = null;
   }
 
   randomSide() {
@@ -119,25 +131,28 @@ game.$playerSection.on('click', '.playerDice', (event) => {
 });
 
 game.$rollingSection.on('click', '.playerDice', (event) => {
-  const $clickedElement = $(event.target)
+  const $clickedElement = $(event.target);
   game.playerUnits.forEach(unit => {
     if ($clickedElement.hasClass(unit.name)) {
       unit.dice.isLocked = true;
       console.log(`Locked dice for ${unit.name}!`);
+      const lockedZone = game.$playerSection.find(`.playerDice.${unit.name}`);      
+      unit.showCurrentSide(lockedZone);
+      $clickedElement.remove();
     }
-    //diceAnimate(p1, $clickedElement);
     
-
-    // const p1randomSide = p1.dice.randomSide();
-    // $clickedElement.text(`${p1randomSide.type} _ ${p1randomSide.value}`);
   });
+  if (game.playerUnits.every(unit => unit.dice.isLocked)) {
+    console.log('all units locked');
+    game.turnPhase = 'playerAction';
+  }  
 });
 
 $(document).on('click', '#reroll', (event) => {
   console.log('meow');
   game.playerUnits.forEach(unit => {
     if (!unit.dice.isLocked) {
-      const $rollingDice = $(`.${unit.name}`);
+      const $rollingDice = game.$rollingSection.find(`.${unit.name}`);
       diceAnimate(unit, $rollingDice);
     }
   });
@@ -152,30 +167,28 @@ const p1farRight = new DiceSide(6, 'damage');
 
 const p1Dice = new Dice(p1Top, p1Left, p1Middle, p1Bottom, p1Right, p1farRight);
 const p2Dice = new Dice(p1Top, p1Left, p1Middle, p1Bottom, p1Right, p1farRight);
+const p3Dice = new Dice(p1Top, p1Left, p1Middle, p1Bottom, p1Right, p1farRight);
 const p1 = new PlayerUnit('Ashley', 10, p1Dice);
 const p2 = new PlayerUnit('Jevan', 4, p2Dice);
-const p3 = new PlayerUnit('Podenco', 2, p2Dice);
-p2.dice.isLocked = true;
-p3.dice.isLocked = true;
+const p3 = new PlayerUnit('Podenco', 2, p3Dice);
 
-const p1RandomSide = p1.dice.randomSide();
-const p1rollingDice = `<div class="playerDice ${p1.name}">${p1RandomSide.type} _ ${p1RandomSide.value}</div>`;
-game.$rollingSection.append(p1rollingDice);
-const $clickDice = game.$rollingSection.find('.playerDice');
-const rollingHeight = Math.floor(Math.random() * game.$rollingSection.height());
-const rollingWidth = Math.floor(Math.random() * game.$rollingSection.width());
-$clickDice.css('top', `${rollingHeight}px`);
-$clickDice.css('left', `${rollingWidth}px`);
-
-function diceAnimate($object, $clickedElement) {
+function diceAnimate($unit, $clickedElement) {
   let aCounter = 0;
   function tickTock() {
     if (aCounter < 3) {
       console.log(aCounter);
-      $object.rollingAnimation($clickedElement);
-      window.setTimeout(tickTock, 1000);
+      $unit.getRandomSide();
+      $unit.showCurrentSide($clickedElement);
+      window.setTimeout(tickTock, 500);
     }
     aCounter ++;
   }
   tickTock();
+}
+
+function randomSpot($dice) {
+  const rollingHeight = Math.floor(Math.random() * game.$rollingSection.height() - $dice.height());
+  const rollingWidth = Math.floor(Math.random() * game.$rollingSection.width()) - $dice.width();
+  $dice.css('top', `${rollingHeight}px`);
+  $dice.css('left', `${rollingWidth}px`);
 }
