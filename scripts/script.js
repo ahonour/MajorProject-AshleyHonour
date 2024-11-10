@@ -35,11 +35,11 @@ const game = {
 };
 
 class PlayerUnit {
-  constructor(name, health, diceSides) {
+  constructor(name, health, dice) {
     this.name = name;
     this.currentHP = health;
     this.totalHP = health;
-    this.diceSides = diceSides; // Make a function to randomly generate
+    this.dice = dice; // Make a function to randomly generate
     game.addNewUnit(this, 'ally');
   }
 }
@@ -49,13 +49,45 @@ class EnemyUnit {
     this.name = name;
     this.currentHP = health;
     this.totalHP = health;
-    this.diceSides = diceSides; // Make a function to randomly generate
+    this.dice = diceSides; // Make a function to randomly generate
     game.addNewUnit(this, 'foe');
+  }
+}
+
+class Dice {
+  constructor(top, left, middle, bottom, right, farRight) {
+    this.top = top;
+    this.left = left; 
+    this.middle = middle;
+    this.bottom = bottom
+    this.right = right;
+    this.farRight = farRight;
+  }
+}
+
+class DiceSide {
+  constructor(value, type) {
+    this.value = value;
+    this.type = type;
   }
 }
 
 game.$DOM.on('click', '.playerDice', (event) => {
   // Your code here
   const $clickedElement = $(event.target);
-  console.log('meow :3');
+  const name = $clickedElement.prev().children().first().first().text();
+  const otherName = $clickedElement.parent().find('.unitName').text();
+  console.log(otherName);
 });
+
+const p1Top = new DiceSide(2, 'damage');
+const p1Middle = new DiceSide(1, 'shield');
+const p1Left = new DiceSide(4, 'damage');
+const p1Right = new DiceSide(3, 'damage');
+const p1Bottom = new DiceSide(5, 'damage');
+const p1farRight = new DiceSide(6, 'damage');
+
+const p1Dice = new Dice(p1Top, p1Left, p1Middle, p1Bottom, p1Right, p1farRight);
+const p1 = new PlayerUnit('Ashley', 10, p1Dice);
+const p2 = new PlayerUnit('Jevan', 4, p1Dice);
+const p3 = new PlayerUnit('Podenco', 2, p1Dice);
