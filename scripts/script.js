@@ -6,6 +6,7 @@ const game = {
   playerUnits: [],
   enemyUnits: [],
   turnPhase: 'enemy',
+  rerollsLeft: 2,
   $DOM: $('#game'),
   $playerSection: $('#playerArea'),
   $rollingSection: $('#rollingArea'),
@@ -41,6 +42,12 @@ const game = {
     unit.getRandomSide();
     unit.showCurrentSide($unitRollingDice);
   },
+  lockDice(unit) {
+    unit.dice.isLocked = true;
+    console.log(`Locked dice for ${unit.name}!`);
+    const lockedZone = game.$playerSection.find(`.playerDice.${unit.name}`);
+    unit.showCurrentSide(lockedZone);
+  },
 };
 
 class PlayerUnit {
@@ -52,12 +59,14 @@ class PlayerUnit {
     game.addNewUnit(this, 'ally');
   }
 
-  getRandomSide() {    
-    this.dice.currentSide = this.dice.randomSide();        
+  getRandomSide() {
+    this.dice.currentSide = this.dice.randomSide();
   }
 
   showCurrentSide($unitDice) {
-    $unitDice.text(`${this.dice.currentSide.value} ${this.dice.currentSide.type}`);
+    $unitDice.text(
+      `${this.dice.currentSide.value} ${this.dice.currentSide.type}`
+    );
   }
 }
 
@@ -74,9 +83,9 @@ class EnemyUnit {
 class Dice {
   constructor(top, left, middle, bottom, right, farRight) {
     this.top = top;
-    this.left = left; 
+    this.left = left;
     this.middle = middle;
-    this.bottom = bottom
+    this.bottom = bottom;
     this.right = right;
     this.farRight = farRight;
     this.isLocked = false;
@@ -84,7 +93,7 @@ class Dice {
   }
 
   randomSide() {
-    const rand = Math.floor(Math.random()*6);
+    const rand = Math.floor(Math.random() * 6);
     let side;
     switch (rand) {
       case 0:
@@ -111,8 +120,6 @@ class Dice {
     }
     return side;
   }
-
-  
 }
 
 class DiceSide {
@@ -123,7 +130,6 @@ class DiceSide {
 }
 
 game.$playerSection.on('click', '.playerDice', (event) => {
-  
   const $clickedElement = $(event.target);
   const name = $clickedElement.prev().children().first().first().text();
   const otherName = $clickedElement.parent().find('.unitName').text();
@@ -132,63 +138,139 @@ game.$playerSection.on('click', '.playerDice', (event) => {
 
 game.$rollingSection.on('click', '.playerDice', (event) => {
   const $clickedElement = $(event.target);
-  game.playerUnits.forEach(unit => {
+  game.playerUnits.forEach((unit) => {
     if ($clickedElement.hasClass(unit.name)) {
-      unit.dice.isLocked = true;
-      console.log(`Locked dice for ${unit.name}!`);
-      const lockedZone = game.$playerSection.find(`.playerDice.${unit.name}`);      
-      unit.showCurrentSide(lockedZone);
+      game.lockDice(unit);
+      // unit.dice.isLocked = true;
+      // console.log(`Locked dice for ${unit.name}!`);
+      // const lockedZone = game.$playerSection.find(`.playerDice.${unit.name}`);
+      // unit.showCurrentSide(lockedZone);
       $clickedElement.remove();
     }
-    
   });
-  if (game.playerUnits.every(unit => unit.dice.isLocked)) {
+  if (game.playerUnits.every((unit) => unit.dice.isLocked)) {
     console.log('all units locked');
     game.turnPhase = 'playerAction';
-  }  
+  }
 });
 
-$(document).on('click', '#reroll', (event) => {
-  console.log('meow');
-  game.playerUnits.forEach(unit => {
+game.$DOM.on('click', '#reroll', (event) => {
+  const $rerollButton = $(event.target);
+  $rerollButton.prop('disabled', true);
+  if (game.rerollsLeft == 0) {
+    console.log('no more rolls left');
+    game.playerUnits.forEach((unit) => {
+      if (!unit.dice.isLocked) {
+        const $lockDice = game.$rollingSection.find(`.${unit.name}`);
+        console.log($lockDice);
+        game.lockDice(unit);
+        $lockDice.remove();
+      }
+    });
+  }
+  if (game.rerollsLeft > 0) {
+    console.log('rerolling');
+    game.playerUnits.forEach(async (unit) => {
+      if (!unit.dice.isLocked) {
+        const $rollingDice = game.$rollingSection.find(`.${unit.name}`);
+        await diceAnimate(unit, $rollingDice);
+      }
+    });
+    game.rerollsLeft--;
+  }
+  // if (game.rerollsLeft = 0) {
+  //   console.log('no more rolls left');
+  //   game.playerUnits.forEach((unit) => {
+  //     if (!unit.dice.isLocked) {
+  //     const $lockDice = $(`.${unit.name}`);
+  //     game.lockDice(unit);
+  //     $lockDice.remove();
+  //   }});
+  // }
+  $(`#rollCounter`).text(`Rerolls left: ${game.rerollsLeft}`);
+  $rerollButton.prop('disabled', false);
+});
+
+// function diceAnimate($unit, $clickedElement) {
+//   let aCounter = 0;
+//   function tickTock() {
+//     if (aCounter < 3) {
+//       console.log(`roll ${aCounter}`);
+//       $unit.getRandomSide();
+//       $unit.showCurrentSide($clickedElement);
+//       window.setTimeout(tickTock, 500);
+//     }
+//     aCounter++;
+//   }
+//   tickTock();
+// }
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function diceAnimate($unit, $clickedElement) {
+  for (let aCounter = 0; aCounter < 3; aCounter++) {
+    console.log(`roll ${aCounter}`);
+    $unit.getRandomSide();
+    $unit.showCurrentSide($clickedElement);
+    await sleep(500);
+  }
+}
+
+function randomSpot($dice) {
+  const rollingHeight = Math.floor(
+    Math.random() * game.$rollingSection.height() - $dice.height()
+  );
+  const rollingWidth =
+    Math.floor(Math.random() * game.$rollingSection.width()) - $dice.width();
+  $dice.css('top', `${rollingHeight}px`);
+  $dice.css('left', `${rollingWidth}px`);
+}
+
+function playerSetup() {
+  const p1Top = new DiceSide(2, 'damage');
+  const p1Middle = new DiceSide(1, 'shield');
+  const p1Left = new DiceSide(4, 'damage');
+  const p1Right = new DiceSide(3, 'damage');
+  const p1Bottom = new DiceSide(5, 'damage');
+  const p1farRight = new DiceSide(6, 'damage');
+
+  const p1Dice = new Dice(
+    p1Top,
+    p1Left,
+    p1Middle,
+    p1Bottom,
+    p1Right,
+    p1farRight
+  );
+  const p2Dice = new Dice(
+    p1Top,
+    p1Left,
+    p1Middle,
+    p1Bottom,
+    p1Right,
+    p1farRight
+  );
+  const p3Dice = new Dice(
+    p1Top,
+    p1Left,
+    p1Middle,
+    p1Bottom,
+    p1Right,
+    p1farRight
+  );
+  const p1 = new PlayerUnit('Ashley', 10, p1Dice);
+  const p2 = new PlayerUnit('Jevan', 4, p2Dice);
+  const p3 = new PlayerUnit('Podenco', 2, p3Dice);
+}
+
+$(document).ready(() => {
+  playerSetup();
+  game.playerUnits.forEach((unit) => {
     if (!unit.dice.isLocked) {
       const $rollingDice = game.$rollingSection.find(`.${unit.name}`);
       diceAnimate(unit, $rollingDice);
     }
   });
 });
-
-const p1Top = new DiceSide(2, 'damage');
-const p1Middle = new DiceSide(1, 'shield');
-const p1Left = new DiceSide(4, 'damage');
-const p1Right = new DiceSide(3, 'damage');
-const p1Bottom = new DiceSide(5, 'damage');
-const p1farRight = new DiceSide(6, 'damage');
-
-const p1Dice = new Dice(p1Top, p1Left, p1Middle, p1Bottom, p1Right, p1farRight);
-const p2Dice = new Dice(p1Top, p1Left, p1Middle, p1Bottom, p1Right, p1farRight);
-const p3Dice = new Dice(p1Top, p1Left, p1Middle, p1Bottom, p1Right, p1farRight);
-const p1 = new PlayerUnit('Ashley', 10, p1Dice);
-const p2 = new PlayerUnit('Jevan', 4, p2Dice);
-const p3 = new PlayerUnit('Podenco', 2, p3Dice);
-
-function diceAnimate($unit, $clickedElement) {
-  let aCounter = 0;
-  function tickTock() {
-    if (aCounter < 3) {
-      console.log(aCounter);
-      $unit.getRandomSide();
-      $unit.showCurrentSide($clickedElement);
-      window.setTimeout(tickTock, 500);
-    }
-    aCounter ++;
-  }
-  tickTock();
-}
-
-function randomSpot($dice) {
-  const rollingHeight = Math.floor(Math.random() * game.$rollingSection.height() - $dice.height());
-  const rollingWidth = Math.floor(Math.random() * game.$rollingSection.width()) - $dice.width();
-  $dice.css('top', `${rollingHeight}px`);
-  $dice.css('left', `${rollingWidth}px`);
-}
