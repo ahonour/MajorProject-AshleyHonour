@@ -30,7 +30,7 @@ const game = {
       const currentHP = `<div id='enemnyUnitCurrentHP${enemyNum}'>${newUnit.currentHP}</div>`;
       const enemyHP = `<div>Health: ${currentHP}/${newUnit.totalHP}</div>`;
       const enemyInfo = `<div class="unitInfo">${enemyName}${enemyHP}</div>`;
-      const enemyDice = `<div class="enemyDice" id='enemyDice${enemyNum}'></div>`;
+      const enemyDice = `<div class="enemyDice ${newUnit.name}" id='enemyDice${enemyNum}'></div>`;
       const newUnitTotal = `<div class="enemyUnit" id='enemyUnit${enemyNum}'>${enemyInfo}${enemyDice}</div>`;
       this.$enemySection.append(newUnitTotal);
       this.createRollingDice(newUnit);
@@ -48,7 +48,9 @@ const game = {
   lockDice(unit) {
     unit.dice.isLocked = true;
     console.log(`Locked dice for ${unit.name}!`);
-    const lockedZone = game.$playerSection.find(`.playerDice.${unit.name}`);
+    const lockedZone = unit.ally
+      ? game.$playerSection.find(`.playerDice.${unit.name}`)
+      : game.$enemySection.find(`.enemyDice.${unit.name}`);
     unit.showCurrentSide(lockedZone);
   },
 };
@@ -196,20 +198,6 @@ game.$DOM.on('click', '#reroll', async (event) => {
   $rerollButton.prop('disabled', false);
 });
 
-// function diceAnimate($unit, $clickedElement) {
-//   let aCounter = 0;
-//   function tickTock() {
-//     if (aCounter < 3) {
-//       console.log(`roll ${aCounter}`);
-//       $unit.getRandomSide();
-//       $unit.showCurrentSide($clickedElement);
-//       window.setTimeout(tickTock, 500);
-//     }
-//     aCounter++;
-//   }
-//   tickTock();
-// }
-
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -302,13 +290,25 @@ function enemySetup() {
     p1Right,
     p1farRight
   );
-  const p1 = new EnemyUnit('bee 1', 10, p1Dice);
-  const p2 = new EnemyUnit('bee 2', 4, p2Dice);
-  const p3 = new EnemyUnit('bee 3', 2, p3Dice);
+  const p1 = new EnemyUnit('bee1', 10, p1Dice);
+  const p2 = new EnemyUnit('bee2', 4, p2Dice);
+  const p3 = new EnemyUnit('bee3', 2, p3Dice);
 }
 
-$(document).ready(() => {
+$(document).ready(async () => {
+  const $rerollButton = $('#reroll');
+  $rerollButton.prop('disabled', true);
+  console.log('enemy rolls');
   enemySetup();
+  console.log('rerolling');
+  for (const unit of game.enemyUnits) {
+    const $rollingDice = game.$rollingSection.find(`.${unit.name}`);
+    await diceAnimate(unit, $rollingDice);
+    game.lockDice(unit);
+    $rollingDice.remove();
+  }
+  await sleep(2000);
+  console.log('player rolls');
   playerSetup();
   game.playerUnits.forEach((unit) => {
     if (!unit.dice.isLocked) {
@@ -316,4 +316,5 @@ $(document).ready(() => {
       diceAnimate(unit, $rollingDice);
     }
   });
+  $rerollButton.prop('disabled', false);
 });
