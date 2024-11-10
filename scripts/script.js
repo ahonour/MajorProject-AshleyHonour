@@ -43,6 +43,11 @@ class PlayerUnit {
     this.dice = dice; // Make a function to randomly generate
     game.addNewUnit(this, 'ally');
   }
+
+  rollingAnimation($clickedElement) {    
+    const unitSide = this.dice.randomSide();
+    $clickedElement.text(`${unitSide.value} ${unitSide.type}`);
+  }
 }
 
 class EnemyUnit {
@@ -93,6 +98,8 @@ class Dice {
     }
     return side;
   }
+
+  
 }
 
 class DiceSide {
@@ -110,6 +117,15 @@ game.$playerSection.on('click', '.playerDice', (event) => {
   console.log(otherName);
 });
 
+game.$rollingSection.on('click', '.playerDice', (event) => {
+  const $clickedElement = $(event.target)
+  if ($clickedElement.hasClass('p1')) {
+    diceAnimate(p1, $clickedElement);
+    // const p1randomSide = p1.dice.randomSide();
+    // $clickedElement.text(`${p1randomSide.type} _ ${p1randomSide.value}`);
+  }
+});
+
 const p1Top = new DiceSide(2, 'damage');
 const p1Middle = new DiceSide(1, 'shield');
 const p1Left = new DiceSide(4, 'damage');
@@ -123,10 +139,22 @@ const p2 = new PlayerUnit('Jevan', 4, p1Dice);
 const p3 = new PlayerUnit('Podenco', 2, p1Dice);
 
 const p1RandomSide = p1.dice.randomSide();
-const p1rollingDice = `<div class="playerDice">${p1RandomSide.type} _ ${p1RandomSide.value}</div>`;
+const p1rollingDice = `<div class="playerDice p1">${p1RandomSide.type} _ ${p1RandomSide.value}</div>`;
 game.$rollingSection.append(p1rollingDice);
 const $clickDice = game.$rollingSection.find('.playerDice');
 const rollingHeight = Math.floor(Math.random() * game.$rollingSection.height());
 const rollingWidth = Math.floor(Math.random() * game.$rollingSection.width());
 $clickDice.css('top', `${rollingHeight}px`);
 $clickDice.css('left', `${rollingWidth}px`);
+
+function diceAnimate($object, $clickedElement) {
+  let aCounter = 0;
+  function tickTock() {
+    if (aCounter < 3) {
+      $object.rollingAnimation($clickedElement);
+      window.setTimeout(tickTock, 1000);
+    }
+    aCounter ++;
+  }
+  tickTock();
+}
