@@ -11,8 +11,8 @@ const game = {
   $playerSection: $('#playerArea'),
   $rollingSection: $('#rollingArea'),
   $enemySection: $('#enemyArea'),
-  addNewUnit(newUnit, allgeiance) {
-    if (allgeiance === 'ally') {
+  addNewUnit(newUnit) {
+    if (newUnit.ally) {
       this.playerUnits.push(newUnit);
       const playerNum = this.playerUnits.length - 1;
       const playerName = `<div class="unitName">${newUnit.name}</div>`;
@@ -34,10 +34,12 @@ const game = {
       const enemyDice = `<div class="enemyDice" id='enemyDice${enemyNum}'></div>`;
       const newUnitTotal = `<div class="enemyUnit" id='enemyUnit${enemyNum}'>${enemyInfo}${enemyDice}</div>`;
       this.$enemySection.append(newUnitTotal);
+      this.createRollingDice(newUnit);
     }
   },
   createRollingDice(unit) {
-    const $unitRollingDice = $(`<div class="playerDice ${unit.name}"></div>`);
+    const $unitRollingDice = unit.ally ? $(`<div class="playerDice ${unit.name}"></div>`) : $(`<div class="enemyDice ${unit.name}"></div>`)
+    //const $unitRollingDice = $(`<div class="playerDice ${unit.name}"></div>`);
     this.$rollingSection.append($unitRollingDice);
     unit.getRandomSide();
     unit.showCurrentSide($unitRollingDice);
@@ -56,7 +58,8 @@ class PlayerUnit {
     this.currentHP = health;
     this.totalHP = health;
     this.dice = dice; // Make a function to randomly generate
-    game.addNewUnit(this, 'ally');
+    this.ally = true;
+    game.addNewUnit(this, true);
   }
 
   getRandomSide() {
@@ -76,7 +79,18 @@ class EnemyUnit {
     this.currentHP = health;
     this.totalHP = health;
     this.dice = diceSides; // Make a function to randomly generate
-    game.addNewUnit(this, 'foe');
+    this.ally = false;
+    game.addNewUnit(this, false);
+  }
+
+  getRandomSide() {
+    this.dice.currentSide = this.dice.randomSide();
+  }
+
+  showCurrentSide($unitDice) {
+    $unitDice.text(
+      `${this.dice.currentSide.value} ${this.dice.currentSide.type}`
+    );
   }
 }
 
@@ -140,8 +154,7 @@ game.$rollingSection.on('click', '.playerDice', (event) => {
   const $clickedElement = $(event.target);
   game.playerUnits.forEach((unit) => {
     if ($clickedElement.hasClass(unit.name)) {
-      game.lockDice(unit);
-      
+      game.lockDice(unit);      
       $clickedElement.remove();
     }
   });
@@ -256,7 +269,45 @@ function playerSetup() {
   const p3 = new PlayerUnit('Podenco', 2, p3Dice);
 }
 
+function enemySetup() {
+  const p1Top = new DiceSide(2, 'damage');
+  const p1Middle = new DiceSide(1, 'shield');
+  const p1Left = new DiceSide(4, 'damage');
+  const p1Right = new DiceSide(3, 'damage');
+  const p1Bottom = new DiceSide(5, 'damage');
+  const p1farRight = new DiceSide(6, 'damage');
+
+  const p1Dice = new Dice(
+    p1Top,
+    p1Left,
+    p1Middle,
+    p1Bottom,
+    p1Right,
+    p1farRight
+  );
+  const p2Dice = new Dice(
+    p1Top,
+    p1Left,
+    p1Middle,
+    p1Bottom,
+    p1Right,
+    p1farRight
+  );
+  const p3Dice = new Dice(
+    p1Top,
+    p1Left,
+    p1Middle,
+    p1Bottom,
+    p1Right,
+    p1farRight
+  );
+  const p1 = new EnemyUnit('bee 1', 10, p1Dice);
+  const p2 = new EnemyUnit('bee 2', 4, p2Dice);
+  const p3 = new EnemyUnit('bee 3', 2, p3Dice);
+}
+
 $(document).ready(() => {
+  enemySetup();
   playerSetup();
   game.playerUnits.forEach((unit) => {
     if (!unit.dice.isLocked) {
