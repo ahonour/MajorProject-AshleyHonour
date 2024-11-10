@@ -68,6 +68,7 @@ class Dice {
     this.bottom = bottom
     this.right = right;
     this.farRight = farRight;
+    this.isLocked = false;
   }
 
   randomSide() {
@@ -119,11 +120,23 @@ game.$playerSection.on('click', '.playerDice', (event) => {
 
 game.$rollingSection.on('click', '.playerDice', (event) => {
   const $clickedElement = $(event.target)
-  if ($clickedElement.hasClass('p1')) {
+  if ($clickedElement.hasClass('Ashley')) {
+    //diceAnimate(p1, $clickedElement);
     diceAnimate(p1, $clickedElement);
+
     // const p1randomSide = p1.dice.randomSide();
     // $clickedElement.text(`${p1randomSide.type} _ ${p1randomSide.value}`);
   }
+});
+
+$(document).on('click', '#reroll', (event) => {
+  console.log('meow');
+  game.playerUnits.forEach(unit => {
+    if (!unit.dice.isLocked) {
+      const $rollingDice = $(`.${unit.name}`);
+      diceAnimate(unit, $rollingDice);
+    }
+  });
 });
 
 const p1Top = new DiceSide(2, 'damage');
@@ -134,12 +147,15 @@ const p1Bottom = new DiceSide(5, 'damage');
 const p1farRight = new DiceSide(6, 'damage');
 
 const p1Dice = new Dice(p1Top, p1Left, p1Middle, p1Bottom, p1Right, p1farRight);
+const p2Dice = new Dice(p1Top, p1Left, p1Middle, p1Bottom, p1Right, p1farRight);
 const p1 = new PlayerUnit('Ashley', 10, p1Dice);
-const p2 = new PlayerUnit('Jevan', 4, p1Dice);
-const p3 = new PlayerUnit('Podenco', 2, p1Dice);
+const p2 = new PlayerUnit('Jevan', 4, p2Dice);
+const p3 = new PlayerUnit('Podenco', 2, p2Dice);
+p2.dice.isLocked = true;
+p3.dice.isLocked = true;
 
 const p1RandomSide = p1.dice.randomSide();
-const p1rollingDice = `<div class="playerDice p1">${p1RandomSide.type} _ ${p1RandomSide.value}</div>`;
+const p1rollingDice = `<div class="playerDice ${p1.name}">${p1RandomSide.type} _ ${p1RandomSide.value}</div>`;
 game.$rollingSection.append(p1rollingDice);
 const $clickDice = game.$rollingSection.find('.playerDice');
 const rollingHeight = Math.floor(Math.random() * game.$rollingSection.height());
@@ -151,6 +167,7 @@ function diceAnimate($object, $clickedElement) {
   let aCounter = 0;
   function tickTock() {
     if (aCounter < 3) {
+      console.log(aCounter);
       $object.rollingAnimation($clickedElement);
       window.setTimeout(tickTock, 1000);
     }
