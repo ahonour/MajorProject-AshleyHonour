@@ -23,7 +23,6 @@ const game = {
       const newUnitTotal = `<div class="playerUnit" id='playerUnit${playerNum}'>${playerInfo}${playerDice}</div>`;
       this.$playerSection.append(newUnitTotal);
       this.createRollingDice(newUnit);
-      //this.$rollingSection.append(playerDice);
     } else {
       this.enemyUnits.push(newUnit);
       const enemyNum = this.enemyUnits.length - 1;
@@ -38,7 +37,9 @@ const game = {
     }
   },
   createRollingDice(unit) {
-    const $unitRollingDice = unit.ally ? $(`<div class="playerDice ${unit.name}"></div>`) : $(`<div class="enemyDice ${unit.name}"></div>`)
+    const $unitRollingDice = unit.ally
+      ? $(`<div class="playerDice ${unit.name}"></div>`)
+      : $(`<div class="enemyDice ${unit.name}"></div>`);
     //const $unitRollingDice = $(`<div class="playerDice ${unit.name}"></div>`);
     this.$rollingSection.append($unitRollingDice);
     unit.getRandomSide();
@@ -154,7 +155,7 @@ game.$rollingSection.on('click', '.playerDice', (event) => {
   const $clickedElement = $(event.target);
   game.playerUnits.forEach((unit) => {
     if ($clickedElement.hasClass(unit.name)) {
-      game.lockDice(unit);      
+      game.lockDice(unit);
       $clickedElement.remove();
     }
   });
@@ -166,7 +167,7 @@ game.$rollingSection.on('click', '.playerDice', (event) => {
 
 game.$DOM.on('click', '#reroll', async (event) => {
   const $rerollButton = $(event.target);
-  $rerollButton.prop('disabled', true); 
+  $rerollButton.prop('disabled', true);
 
   if (game.rerollsLeft == 0) {
     console.log('no more rolls left');
@@ -185,14 +186,14 @@ game.$DOM.on('click', '#reroll', async (event) => {
     for (const unit of game.playerUnits) {
       if (!unit.dice.isLocked) {
         const $rollingDice = game.$rollingSection.find(`.${unit.name}`);
-        await diceAnimate(unit, $rollingDice); 
+        await diceAnimate(unit, $rollingDice);
       }
     }
     game.rerollsLeft--;
   }
 
   $(`#rollCounter`).text(`Rerolls left: ${game.rerollsLeft}`);
-  $rerollButton.prop('disabled', false); 
+  $rerollButton.prop('disabled', false);
 });
 
 // function diceAnimate($unit, $clickedElement) {
