@@ -141,10 +141,7 @@ game.$rollingSection.on('click', '.playerDice', (event) => {
   game.playerUnits.forEach((unit) => {
     if ($clickedElement.hasClass(unit.name)) {
       game.lockDice(unit);
-      // unit.dice.isLocked = true;
-      // console.log(`Locked dice for ${unit.name}!`);
-      // const lockedZone = game.$playerSection.find(`.playerDice.${unit.name}`);
-      // unit.showCurrentSide(lockedZone);
+      
       $clickedElement.remove();
     }
   });
@@ -154,9 +151,10 @@ game.$rollingSection.on('click', '.playerDice', (event) => {
   }
 });
 
-game.$DOM.on('click', '#reroll', (event) => {
+game.$DOM.on('click', '#reroll', async (event) => {
   const $rerollButton = $(event.target);
-  $rerollButton.prop('disabled', true);
+  $rerollButton.prop('disabled', true); 
+
   if (game.rerollsLeft == 0) {
     console.log('no more rolls left');
     game.playerUnits.forEach((unit) => {
@@ -168,27 +166,20 @@ game.$DOM.on('click', '#reroll', (event) => {
       }
     });
   }
+
   if (game.rerollsLeft > 0) {
     console.log('rerolling');
-    game.playerUnits.forEach(async (unit) => {
+    for (const unit of game.playerUnits) {
       if (!unit.dice.isLocked) {
         const $rollingDice = game.$rollingSection.find(`.${unit.name}`);
-        await diceAnimate(unit, $rollingDice);
+        await diceAnimate(unit, $rollingDice); 
       }
-    });
+    }
     game.rerollsLeft--;
   }
-  // if (game.rerollsLeft = 0) {
-  //   console.log('no more rolls left');
-  //   game.playerUnits.forEach((unit) => {
-  //     if (!unit.dice.isLocked) {
-  //     const $lockDice = $(`.${unit.name}`);
-  //     game.lockDice(unit);
-  //     $lockDice.remove();
-  //   }});
-  // }
+
   $(`#rollCounter`).text(`Rerolls left: ${game.rerollsLeft}`);
-  $rerollButton.prop('disabled', false);
+  $rerollButton.prop('disabled', false); 
 });
 
 // function diceAnimate($unit, $clickedElement) {
@@ -214,7 +205,7 @@ async function diceAnimate($unit, $clickedElement) {
     console.log(`roll ${aCounter}`);
     $unit.getRandomSide();
     $unit.showCurrentSide($clickedElement);
-    await sleep(500);
+    await sleep(200);
   }
 }
 
