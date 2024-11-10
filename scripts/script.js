@@ -6,9 +6,9 @@ const game = {
   playerUnits: [],
   enemyUnits: [],
   turnPhase: 'enemy',
-  DOM: document.querySelector('#game'),
-  playerDOM: document.querySelector('#playerArea'),
-  enemyDOM: document.querySelector('#enemyArea'),
+  $DOM: $('#game'),
+  $playerSection: $('#playerArea'),
+  $enemySection: $('#enemyArea'),
   addNewUnit(newUnit, allgeiance) {
     if (allgeiance === 'ally') {
       this.playerUnits.push(newUnit);
@@ -19,7 +19,7 @@ const game = {
       const playerInfo = `<div class="unitInfo">${playerName}${playerHP}</div>`;
       const playerDice = `<div class="playerDice" id='playerDice${playerNum}'></div>`;
       const newUnitTotal = `<div class="playerUnit" id='playerUnit${playerNum}'>${playerInfo}${playerDice}</div>`;
-      this.playerDOM.innerHTML += newUnitTotal;
+      this.$playerSection.append(newUnitTotal);
     } else {
       this.enemyUnits.push(newUnit);
       const enemyNum = this.enemyUnits.length - 1;
@@ -29,7 +29,7 @@ const game = {
       const enemyInfo = `<div class="unitInfo">${enemyName}${enemyHP}</div>`;
       const enemyDice = `<div class="enemyDice" id='enemyDice${enemyNum}'></div>`;
       const newUnitTotal = `<div class="enemyUnit" id='enemyUnit${enemyNum}'>${enemyInfo}${enemyDice}</div>`;
-      this.enemyDOM.innerHTML += newUnitTotal;
+      this.$enemySection.append(newUnitTotal);
     }
   },
 };
@@ -53,3 +53,9 @@ class EnemyUnit {
     game.addNewUnit(this, 'foe');
   }
 }
+
+game.$DOM.on('click', '.playerDice', (event) => {
+  // Your code here
+  const $clickedElement = $(event.target);
+  console.log('meow :3');
+});
