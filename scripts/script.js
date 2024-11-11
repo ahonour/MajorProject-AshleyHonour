@@ -16,8 +16,7 @@ const game = {
       this.playerUnits.push(newUnit);
       const playerNum = this.playerUnits.length - 1;
       const playerName = `<div class="unitName">${newUnit.name}</div>`;
-      const currentHP = `<div id='playerUnitCurrentHP${playerNum}'>${newUnit.currentHP}</div>`;
-      const playerHP = `<div>Health: ${currentHP}/${newUnit.totalHP}</div>`;
+      const playerHP = `<div class="unitHP ${newUnit.name}">Health: ${newUnit.currentHP}/${newUnit.totalHP}</div>`;
       const playerInfo = `<div class="unitInfo">${playerName}${playerHP}</div>`;
       const playerDice = `<div class="playerDice ${newUnit.name}" id='playerDice${playerNum}'></div>`;
       const newUnitTotal = `<div class="playerUnit" id='playerUnit${playerNum}'>${playerInfo}${playerDice}</div>`;
@@ -62,8 +61,9 @@ const game = {
       console.log(`target: ${target.name}`);
       console.log(`damage: ${damage}`);
       target.currentHP -= damage;
+      target.updateHP();
     });
-  }
+  },
 };
 
 class PlayerUnit {
@@ -74,7 +74,7 @@ class PlayerUnit {
     this.dice = dice; // Make a function to randomly generate
     this.ally = true;
     this.alive = true;
-    this.shield = 0;    
+    this.shield = 0;
     game.addNewUnit(this);
   }
 
@@ -87,6 +87,15 @@ class PlayerUnit {
       `${this.dice.currentSide.value} ${this.dice.currentSide.type}`
     );
   }
+
+  updateHP() {
+    const $hp = game.$playerSection.find(`.unitHP.${this.name}`);
+    if (this.currentHP <= 0) {
+      $hp.text(`Dead :'(`);
+    } else {
+      $hp.text(`Health: ${this.currentHP}/${this.totalHP}`);
+    }
+  }
 }
 
 class EnemyUnit {
@@ -97,7 +106,7 @@ class EnemyUnit {
     this.dice = dice; // Make a function to randomly generate
     this.ally = false;
     this.target = null;
-    this.alive = true;    
+    this.alive = true;
     game.addNewUnit(this);
   }
 
