@@ -41,6 +41,7 @@ main > header {
 
 .rollingArea {
   grid-area: diceArea;
+  position: relative;
 }
 
 main > section {
@@ -71,3 +72,7 @@ main > section {
   padding: 0.1rem;
   border: 1px solid black;
 }
+
+/* .rollingArea > .playerDice {
+  position: absolute;
+} */
