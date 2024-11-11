@@ -53,6 +53,17 @@ const game = {
       : game.$enemySection.find(`.enemyDice.${unit.name}`);
     unit.showCurrentSide(lockedZone);
   },
+
+  enemyAttack() {
+    game.enemyUnits.forEach((unit) => {
+      const target = unit.target;
+      let damage = Math.max(0, unit.dice.currentSide.value - target.shield);
+      //let damage = unit.dice.currentSide.value;
+      console.log(`target: ${target.name}`);
+      console.log(`damage: ${damage}`);
+      target.currentHP -= damage;
+    });
+  }
 };
 
 class PlayerUnit {
@@ -63,6 +74,7 @@ class PlayerUnit {
     this.dice = dice; // Make a function to randomly generate
     this.ally = true;
     this.alive = true;
+    this.shield = 0;    
     game.addNewUnit(this);
   }
 
@@ -85,7 +97,7 @@ class EnemyUnit {
     this.dice = dice; // Make a function to randomly generate
     this.ally = false;
     this.target = null;
-    this.alive = true;
+    this.alive = true;    
     game.addNewUnit(this);
   }
 
@@ -276,7 +288,7 @@ function enemySetup() {
   const p1Bottom = new DiceSide(5, 'damage');
   const p1farRight = new DiceSide(6, 'damage');
 
-  const p1Dice = new Dice(
+  const e1Dice = new Dice(
     p1Top,
     p1Left,
     p1Middle,
@@ -284,7 +296,7 @@ function enemySetup() {
     p1Right,
     p1farRight
   );
-  const p2Dice = new Dice(
+  const e2Dice = new Dice(
     p1Top,
     p1Left,
     p1Middle,
@@ -292,7 +304,7 @@ function enemySetup() {
     p1Right,
     p1farRight
   );
-  const p3Dice = new Dice(
+  const e3Dice = new Dice(
     p1Top,
     p1Left,
     p1Middle,
@@ -300,9 +312,9 @@ function enemySetup() {
     p1Right,
     p1farRight
   );
-  const p1 = new EnemyUnit('bee1', 10, p1Dice);
-  const p2 = new EnemyUnit('bee2', 4, p2Dice);
-  const p3 = new EnemyUnit('bee3', 2, p3Dice);
+  const p1 = new EnemyUnit('bee1', 10, e1Dice);
+  const p2 = new EnemyUnit('bee2', 4, e2Dice);
+  const p3 = new EnemyUnit('bee3', 2, e3Dice);
 }
 
 $(document).ready(async () => {
