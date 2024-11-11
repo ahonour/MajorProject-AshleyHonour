@@ -58,12 +58,11 @@ const game = {
       const target = unit.target;
       let damage = unit.dice.currentSide.value;
       let totalDamage = 0;
-      if (target.shield > damage) {        
+      if (target.shield > damage) {
+      } else {
+        totalDamage = damage - target.shield;
       }
-      else {
-        totalDamage = damage - target.shield;        
-      }
-      target.shield = Math.max(0, target.shield-damage);      
+      target.shield = Math.max(0, target.shield - damage);
       console.log(`target: ${target.name} for ${damage} damage`);
       console.log(`new shield value: ${target.shield}`);
       console.log(`total damage: ${totalDamage}`);
