@@ -176,7 +176,6 @@ game.$DOM.on('click', '#reroll', async (event) => {
     game.playerUnits.forEach((unit) => {
       if (!unit.dice.isLocked) {
         const $lockDice = game.$rollingSection.find(`.${unit.name}`);
-        console.log($lockDice);
         game.lockDice(unit);
         $lockDice.remove();
       }
@@ -204,7 +203,6 @@ function sleep(ms) {
 
 async function diceAnimate($unit, $clickedElement) {
   for (let aCounter = 0; aCounter < 3; aCounter++) {
-    console.log(`roll ${aCounter}`);
     $unit.getRandomSide();
     $unit.showCurrentSide($clickedElement);
     await sleep(200);
@@ -307,14 +305,12 @@ $(document).ready(async () => {
     game.lockDice(unit);
     $rollingDice.remove();
   }
-  await sleep(2000);
+  await sleep(1000);
   console.log('player rolls');
   playerSetup();
   game.playerUnits.forEach((unit) => {
-    if (!unit.dice.isLocked) {
-      const $rollingDice = game.$rollingSection.find(`.${unit.name}`);
-      diceAnimate(unit, $rollingDice);
-    }
+    const $rollingDice = game.$rollingSection.find(`.${unit.name}`);
+    diceAnimate(unit, $rollingDice);
   });
   $rerollButton.prop('disabled', false);
 });
