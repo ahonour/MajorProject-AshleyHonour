@@ -7,6 +7,8 @@ const game = {
   enemyUnits: [],
   turnPhase: 'enemy',
   rerollsLeft: 2,
+  activePlayerUnit: null,
+  playerActions: null,
   $DOM: $('#game'),
   $playerSection: $('#playerArea'),
   $rollingSection: $('#rollingArea'),
@@ -47,10 +49,10 @@ const game = {
   },
   lockDice(unit) {
     unit.dice.isLocked = true;
-    const lockedZone = unit.ally
+    const unitZone = unit.ally
       ? game.$playerSection.find(`.playerDice.${unit.name}`)
       : game.$enemySection.find(`.enemyDice.${unit.name}`);
-    unit.showCurrentSide(lockedZone);
+    unit.showCurrentSide(unitZone);
   },
 
   enemyAttack() {
@@ -69,6 +71,62 @@ const game = {
       target.currentHP -= totalDamage;
       target.updateHP();
     });
+  },
+
+  playerEndRolls() {
+    console.log('all units locked moving to action phase');
+    const alivePlayerUnits = game.playerUnits.filter((unit) => unit.alive);
+    game.playerActions = alivePlayerUnits.length;
+    game.turnPhase = 'playerAction';
+  },
+
+  usePlayerDice(playerUnit) {
+    if (playerUnit.dice.currentSide.type === 'damage') {
+      console.log('click on an enemy unit to attack them');
+      game.turnPhase = 'playerAttacking';
+    } else {
+      console.log('click on an allied unit to aid them');
+      game.turnPhase = 'playerDefending';
+    }
+    game.activePlayerUnit = playerUnit;
+  },
+
+  aidPlayerUnit(targetUnit) {
+    const diceType = game.activePlayerUnit.dice.currentSide.type;
+    const diceValue = game.activePlayerUnit.dice.currentSide.value;
+    if (diceType === 'heal') {
+      targetUnit.currentHP += diceValue;
+      targetUnit.updateHP();
+    } else if (diceType === 'shield') {
+      targetUnit.shield += diceValue;
+      targetUnit.updateShield(); // TODO
+    }
+    game.playerActions--;
+    if (game.playerActions === 0) {
+      console.log('player out of actions, it is now the enemy turn');
+      // prompt user somehow
+      game.turnPhase = 'enemyAttack';
+      return;
+    }
+    // function to remove activePlayerUnit dice
+    game.activePlayerUnit = null;
+    game.turnPhase = 'playerAction';
+  },
+
+  attackEnemyUnit(targetUnit) {
+    const diceValue = game.activePlayerUnit.dice.currentSide.value;
+    targetUnit.currentHP -= diceValue;
+
+    game.playerActions--;
+    if (game.playerActions === 0) {
+      console.log('player out of actions, it is now the enemy turn');
+      // prompt user somehow
+      game.turnPhase = 'enemyAttack';
+      return;
+    }
+    // function to remove activePlayerUnit dice
+    game.activePlayerUnit = null;
+    game.turnPhase = 'playerAction';
   },
 };
 
@@ -98,9 +156,16 @@ class PlayerUnit {
     const $hp = game.$playerSection.find(`.unitHP.${this.name}`);
     if (this.currentHP <= 0) {
       $hp.text(`Dead :'(`);
+    } else if (this.currentHP > this.totalHP) {
+      this.currentHP = this.totalHP;
+      $hp.text(`Health: ${this.currentHP}/${this.totalHP}`);
     } else {
       $hp.text(`Health: ${this.currentHP}/${this.totalHP}`);
     }
+  }
+
+  updateShield() {
+    // TODO
   }
 }
 
@@ -133,6 +198,15 @@ class EnemyUnit {
     game.$enemySection
       .find(`.targeting.${this.name}`)
       .text(`Target: ${this.target.name}`);
+  }
+
+  updateHP() {
+    const $hp = game.$playerSection.find(`.unitHP.${this.name}`);
+    if (this.currentHP <= 0) {
+      $hp.text(`Dead :'(`);
+    } else {
+      $hp.text(`Health: ${this.currentHP}/${this.totalHP}`);
+    }
   }
 }
 
@@ -187,9 +261,17 @@ class DiceSide {
 
 game.$playerSection.on('click', '.playerDice', (event) => {
   const $clickedElement = $(event.target);
-  const name = $clickedElement.prev().children().first().first().text();
-  const otherName = $clickedElement.parent().find('.unitName').text();
-  console.log(otherName);
+  const unitName = $clickedElement.parent().find('.unitName').text();
+  const playerUnit =
+    game.playerUnits[game.playerUnits.findIndex((n) => n.name === unitName)];
+  if (game.turnPhase === 'playerAction') {
+    if (playerUnit.dice.currentSide != null) {
+      console.log(`using ${unitName}'s dice`);
+      game.usePlayerDice(playerUnit);
+    }
+  } else if (game.turnPhase === 'playerDefending') {
+    game.aidPlayerUnit(playerUnit);
+  }
 });
 
 game.$rollingSection.on('click', '.playerDice', (event) => {
@@ -201,8 +283,18 @@ game.$rollingSection.on('click', '.playerDice', (event) => {
     }
   });
   if (game.playerUnits.every((unit) => unit.dice.isLocked)) {
-    console.log('all units locked');
-    game.turnPhase = 'playerAction';
+    game.playerEndRolls();
+  }
+});
+
+game.$enemySection.on('click', '.enemyUnit', (event) => {
+  const $clickedElement = $(event.target);
+  const unitName = $clickedElement.find('.unitName').text();
+  const enemyUnit =
+    game.enemyUnits[game.enemyUnits.findIndex((n) => n.name === unitName)];
+  if (game.turnPhase === 'playerAttacking') {
+    console.log(`attacking ${unitName}`);
+    game.attackEnemyUnit(enemyUnit);
   }
 });
 
@@ -219,6 +311,7 @@ game.$DOM.on('click', '#reroll', async (event) => {
         $lockDice.remove();
       }
     });
+    game.playerEndRolls();
   }
 
   if (game.rerollsLeft > 0) {
@@ -236,6 +329,7 @@ game.$DOM.on('click', '#reroll', async (event) => {
   $rerollButton.prop('disabled', false);
 });
 
+// ---------------------------------------------Animation---------------------------------------------
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -258,6 +352,7 @@ function randomSpot($dice) {
   $dice.css('left', `${rollingWidth}px`);
 }
 
+// ---------------------------------------------Set up units---------------------------------------------
 function playerSetup() {
   const p1Top = new DiceSide(2, 'damage');
   const p1Middle = new DiceSide(1, 'shield');
@@ -332,6 +427,7 @@ function enemySetup() {
   const p3 = new EnemyUnit('bee3', 2, e3Dice);
 }
 
+// ---------------------------------------------Game Start-----------------------------------------------
 $(document).ready(async () => {
   const $rerollButton = $('#reroll');
   $rerollButton.prop('disabled', true);
@@ -353,4 +449,5 @@ $(document).ready(async () => {
     diceAnimate(unit, $rollingDice);
   });
   $rerollButton.prop('disabled', false);
+  game.turnPhase = 'playerRolling';
 });
