@@ -19,7 +19,8 @@ const game = {
       const playerNum = this.playerUnits.length - 1;
       const playerName = `<div class="unitName">${newUnit.name}</div>`;
       const playerHP = `<div class="unitHP ${newUnit.name}">Health: ${newUnit.currentHP}/${newUnit.totalHP}</div>`;
-      const playerInfo = `<div class="unitInfo">${playerName}${playerHP}</div>`;
+      const playerShield = `<div class="unitShield ${newUnit.name}">Shield: 0</div>`;
+      const playerInfo = `<div class="unitInfo">${playerName}${playerHP}${playerShield}</div>`;      
       const playerDice = `<div class="playerDice ${newUnit.name}" id='playerDice${playerNum}'></div>`;
       const newUnitTotal = `<div class="playerUnit" id='playerUnit${playerNum}'>${playerInfo}${playerDice}</div>`;
       this.$playerSection.append(newUnitTotal);
@@ -71,6 +72,12 @@ const game = {
       target.currentHP -= totalDamage;
       target.updateHP();
     });
+    game.turnPhase = 'playerRolling';
+    const alivePlayerUnits = game.playerUnits.filter((unit) => unit.alive);
+    alivePlayerUnits.forEach(unit => {
+      game.createRollingDice(unit);
+    });
+    
   },
 
   playerEndRolls() {
@@ -112,6 +119,7 @@ const game = {
       console.log('player out of actions, it is now the enemy turn');
       // prompt user somehow
       game.turnPhase = 'enemyAttack';
+      game.enemyAttack();
       return;
     }
   },
@@ -134,6 +142,7 @@ const game = {
       console.log('player out of actions, it is now the enemy turn');
       // prompt user somehow
       game.turnPhase = 'enemyAttack';
+      game.enemyAttack();
       return;
     }
   },
@@ -166,6 +175,7 @@ class PlayerUnit {
     const $hp = game.$playerSection.find(`.unitHP.${this.name}`);
     if (this.currentHP <= 0) {
       $hp.text(`Dead :'(`);
+      this.alive = false;
     } else if (this.currentHP > this.totalHP) {
       this.currentHP = this.totalHP;
       $hp.text(`Health: ${this.currentHP}/${this.totalHP}`);
@@ -175,7 +185,8 @@ class PlayerUnit {
   }
 
   updateShield() {
-    // TODO
+    const $shield = game.$playerSection.find(`.unitShield.${this.name}`);
+    $shield.text(`Shield: ${this.shield}`);
   }
 }
 
