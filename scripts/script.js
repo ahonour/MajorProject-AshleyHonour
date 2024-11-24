@@ -28,8 +28,8 @@ const game = {
       this.enemyUnits.push(newUnit);
       const enemyNum = this.enemyUnits.length - 1;
       const enemyName = `<div class="unitName">${newUnit.name}</div>`;
-      const currentHP = `<div id='enemnyUnitCurrentHP${enemyNum}'>${newUnit.currentHP}</div>`;
-      const enemyHP = `<div>Health: ${currentHP}</div>`;
+      //const currentHP = `<div id='enemnyUnitCurrentHP${enemyNum}'>${newUnit.currentHP}</div>`;
+      const enemyHP = `<div class="unitHP ${newUnit.name}">Health: ${newUnit.currentHP}/${newUnit.currentHP}</div>`;
       const target = `<div class="targeting ${newUnit.name}">Targeting: </div>`;
       const enemyInfo = `<div class="unitInfo">${enemyName}${enemyHP}${target}</div>`;
       const enemyDice = `<div class="enemyDice ${newUnit.name}" id='enemyDice${enemyNum}'></div>`;
@@ -101,6 +101,12 @@ const game = {
       targetUnit.shield += diceValue;
       targetUnit.updateShield(); // TODO
     }
+    game.$playerSection
+      .find(`.playerDice.${game.activePlayerUnit.name}`)
+      .empty();
+    game.activePlayerUnit.dice.currentSide = null;
+    game.activePlayerUnit = null;
+    game.turnPhase = 'playerAction';
     game.playerActions--;
     if (game.playerActions === 0) {
       console.log('player out of actions, it is now the enemy turn');
@@ -108,15 +114,21 @@ const game = {
       game.turnPhase = 'enemyAttack';
       return;
     }
-    // function to remove activePlayerUnit dice
-    game.activePlayerUnit = null;
-    game.turnPhase = 'playerAction';
   },
 
   attackEnemyUnit(targetUnit) {
     const diceValue = game.activePlayerUnit.dice.currentSide.value;
     targetUnit.currentHP -= diceValue;
 
+    targetUnit.updateHP();
+
+    game.$playerSection
+      .find(`.playerDice.${game.activePlayerUnit.name}`)
+      .empty();
+    game.activePlayerUnit.dice.currentSide = null;
+    game.activePlayerUnit = null;
+    game.turnPhase = 'playerAction';
+
     game.playerActions--;
     if (game.playerActions === 0) {
       console.log('player out of actions, it is now the enemy turn');
@@ -124,12 +136,10 @@ const game = {
       game.turnPhase = 'enemyAttack';
       return;
     }
-    // function to remove activePlayerUnit dice
-    game.activePlayerUnit = null;
-    game.turnPhase = 'playerAction';
   },
 };
 
+// ---------------------------------------------Unit classes---------------------------------------------
 class PlayerUnit {
   constructor(name, health, dice) {
     this.name = name;
@@ -201,7 +211,7 @@ class EnemyUnit {
   }
 
   updateHP() {
-    const $hp = game.$playerSection.find(`.unitHP.${this.name}`);
+    const $hp = game.$enemySection.find(`.unitHP.${this.name}`);    
     if (this.currentHP <= 0) {
       $hp.text(`Dead :'(`);
     } else {
@@ -259,6 +269,7 @@ class DiceSide {
   }
 }
 
+// ---------------------------------------------Game Area click---------------------------------------------
 game.$playerSection.on('click', '.playerDice', (event) => {
   const $clickedElement = $(event.target);
   const unitName = $clickedElement.parent().find('.unitName').text();
@@ -289,15 +300,17 @@ game.$rollingSection.on('click', '.playerDice', (event) => {
 
 game.$enemySection.on('click', '.enemyUnit', (event) => {
   const $clickedElement = $(event.target);
-  const unitName = $clickedElement.find('.unitName').text();
+  const unitName = $clickedElement.closest('.enemyUnit').find('.unitName').text();
   const enemyUnit =
     game.enemyUnits[game.enemyUnits.findIndex((n) => n.name === unitName)];
   if (game.turnPhase === 'playerAttacking') {
-    console.log(`attacking ${unitName}`);
+    console.log(`enemy unit is ${unitName}\n------------------`);
+    console.log(`attacking ${enemyUnit.name}`);
     game.attackEnemyUnit(enemyUnit);
   }
 });
 
+// ---------------------------------------------Reroll Button---------------------------------------------
 game.$DOM.on('click', '#reroll', async (event) => {
   const $rerollButton = $(event.target);
   $rerollButton.prop('disabled', true);
