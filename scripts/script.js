@@ -172,8 +172,8 @@ const game = {
     if (game.playerActions === 0) {
       console.log('player out of actions, it is now the enemy turn');
       // prompt user somehow
-      game.turnPhase = 'enemyAttack';
-      game.enemyAttack();
+      game.$DOM.find('#endTurn').addClass('dicePrompt');
+      game.turnPhase = 'enemyAttack';      
       return;
     }
   },
@@ -202,9 +202,9 @@ const game = {
     }
     else if (game.playerActions === 0) {
       console.log('player out of actions, it is now the enemy turn');
-      // prompt user somehow
-      game.turnPhase = 'enemyAttack';
-      game.enemyAttack();
+      // prompt user somehow      
+      game.$DOM.find('#endTurn').addClass('dicePrompt');
+      game.turnPhase = 'enemyAttack';   
       return;
     }
   },
@@ -415,6 +415,14 @@ game.$DOM.on('click', '#reroll', async (event) => {
 
   $(`#rollCounter`).text(`Rerolls left: ${game.rerollsLeft}`);
   $rerollButton.prop('disabled', false);
+});
+
+game.$DOM.on('click', '#endTurn', (event) => {
+  const $endTurnButton = $(event.target);
+  if(game.turnPhase === 'enemyAttack') {
+    $endTurnButton.removeClass('dicePrompt');
+    game.enemyAttack();    
+  }
 });
 
 // ---------------------------------------------Animation---------------------------------------------
