@@ -34,7 +34,7 @@ const game = {
       const target = `<div class="targeting ${newUnit.name}">Targeting: </div>`;
       const enemyInfo = `<div class="unitInfo">${enemyName}${enemyHP}${target}</div>`;
       const enemyDice = `<div class="enemyDice ${newUnit.name}" id='enemyDice${enemyNum}'></div>`;
-      const newUnitTotal = `<div class="enemyUnit" id='enemyUnit${enemyNum}'>${enemyInfo}${enemyDice}</div>`;
+      const newUnitTotal = `<div class="enemyUnit" id='${newUnit.name}'>${enemyInfo}${enemyDice}</div>`;
       this.$enemySection.append(newUnitTotal);
       this.createRollingDice(newUnit);
     }
@@ -157,7 +157,11 @@ const game = {
     game.turnPhase = 'playerAction';
 
     game.playerActions--;
-    if (game.playerActions === 0) {
+    if (game.enemyUnits.length === 0) {
+      console.log('All enemies dead, you won!!!!! :3 ');
+      game.turnPhase = 'fightOver';
+    }
+    else if (game.playerActions === 0) {
       console.log('player out of actions, it is now the enemy turn');
       // prompt user somehow
       game.turnPhase = 'enemyAttack';
@@ -244,6 +248,10 @@ class EnemyUnit {
     const $hp = game.$enemySection.find(`.unitHP.${this.name}`);
     if (this.currentHP <= 0) {
       $hp.text(`Dead :'(`);
+      // Kill the unit
+      game.$enemySection.find(`#${this.name}`).remove();
+      game.enemyUnits.splice((game.enemyUnits.findIndex((n) => n.name === this.name)), 1);
+
     } else {
       $hp.text(`Health: ${this.currentHP}/${this.totalHP}`);
     }
