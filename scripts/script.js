@@ -22,7 +22,7 @@ const game = {
       const playerShield = `<div class="unitShield ${newUnit.name}">Shield: 0</div>`;
       const playerInfo = `<div class="unitInfo">${playerName}${playerHP}${playerShield}</div>`;
       const playerDice = `<div class="playerDice ${newUnit.name}" id='playerDice${playerNum}'></div>`;
-      const newUnitTotal = `<div class="playerUnit" id='playerUnit${playerNum}'>${playerInfo}${playerDice}</div>`;
+      const newUnitTotal = `<div class="playerUnit ${newUnit.name}" id='playerUnit${playerNum}'>${playerInfo}${playerDice}</div>`;
       this.$playerSection.append(newUnitTotal);
       this.createRollingDice(newUnit);
     } else {
@@ -112,16 +112,36 @@ const game = {
   playerEndRolls() {
     console.log('all units locked moving to action phase');
     const alivePlayerUnits = game.playerUnits.filter((unit) => unit.alive);
-    game.playerActions = alivePlayerUnits.length;
     game.turnPhase = 'playerAction';
+    game.playerActions = alivePlayerUnits.length;
+    game.playerDicePrompt();
+    // alivePlayerUnits.forEach(unit => {
+    //   game.$playerSection.find(`.playerDice.${unit.name}`).addClass('dicePrompt');
+    // });
+  },
+
+  playerDicePrompt() {
+    const alivePlayerUnits = game.playerUnits.filter((unit) => unit.alive).filter((unit)=>unit.dice.isLocked);
+    // let alivePlayerUnits = game.playerUnits.filter((unit) => unit.alive);
+    // alivePlayerUnits = alivePlayerUnits.filter((unit) => unit.isLocked);
+    console.log(`locked units are ${alivePlayerUnits}`);
+    alivePlayerUnits.forEach(unit => {
+      game.$playerSection.find(`.playerDice.${unit.name}`).addClass('dicePrompt');
+    });
   },
 
   usePlayerDice(playerUnit) {
+    game.$playerSection.find('.playerDice').removeClass('dicePrompt');
     if (playerUnit.dice.currentSide.type === 'damage') {
       console.log('click on an enemy unit to attack them');
+      game.$enemySection.find('.enemyUnit').addClass('enemyHighlight');
       game.turnPhase = 'playerAttacking';
     } else {
       console.log('click on an allied unit to aid them');
+      const alivePlayerUnits = game.playerUnits.filter((unit) => unit.alive);
+      alivePlayerUnits.forEach(unit => {
+        game.$playerSection.find(`.playerDice.${unit.name}`).addClass('playerHighlight');
+      });
       game.turnPhase = 'playerDefending';
     }
     game.activePlayerUnit = playerUnit;
@@ -141,8 +161,13 @@ const game = {
       .find(`.playerDice.${game.activePlayerUnit.name}`)
       .empty();
     game.activePlayerUnit.dice.currentSide = null;
+    game.activePlayerUnit.dice.isLocked = false;
+    game.$playerSection.find(`.playerDice`).removeClass('playerHighlight');
     game.activePlayerUnit = null;
+    
     game.turnPhase = 'playerAction';
+    game.playerDicePrompt();
+
     game.playerActions--;
     if (game.playerActions === 0) {
       console.log('player out of actions, it is now the enemy turn');
@@ -163,7 +188,11 @@ const game = {
       .find(`.playerDice.${game.activePlayerUnit.name}`)
       .empty();
     game.activePlayerUnit.dice.currentSide = null;
+    game.activePlayerUnit.dice.isLocked = false;
     game.activePlayerUnit = null;
+
+    game.$enemySection.find('.enemyUnit').removeClass('enemyHighlight');
+    game.playerDicePrompt();
     game.turnPhase = 'playerAction';
 
     game.playerActions--;

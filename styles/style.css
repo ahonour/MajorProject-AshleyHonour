@@ -76,3 +76,15 @@ main > section {
 /* .rollingArea > .playerDice {
   position: absolute;
 } */
+
+.playerHighlight {
+  border: 3px solid rgb(20, 41, 155);
+}
+
+.enemyHighlight {
+  border: 3px solid rgb(186, 35, 103)
+}
+
+.dicePrompt {
+  border: 3px solid rgb(16, 158, 103)
+}
