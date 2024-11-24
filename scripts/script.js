@@ -19,7 +19,8 @@ const game = {
       const playerNum = this.playerUnits.length - 1;
       const playerName = `<div class="unitName">${newUnit.name}</div>`;
       const playerHP = `<div class="unitHP ${newUnit.name}">Health: ${newUnit.currentHP}/${newUnit.totalHP}</div>`;
-      const playerInfo = `<div class="unitInfo">${playerName}${playerHP}</div>`;
+      const playerShield = `<div class="unitShield ${newUnit.name}">Shield: 0</div>`;
+      const playerInfo = `<div class="unitInfo">${playerName}${playerHP}${playerShield}</div>`;
       const playerDice = `<div class="playerDice ${newUnit.name}" id='playerDice${playerNum}'></div>`;
       const newUnitTotal = `<div class="playerUnit" id='playerUnit${playerNum}'>${playerInfo}${playerDice}</div>`;
       this.$playerSection.append(newUnitTotal);
@@ -28,12 +29,12 @@ const game = {
       this.enemyUnits.push(newUnit);
       const enemyNum = this.enemyUnits.length - 1;
       const enemyName = `<div class="unitName">${newUnit.name}</div>`;
-      const currentHP = `<div id='enemnyUnitCurrentHP${enemyNum}'>${newUnit.currentHP}</div>`;
-      const enemyHP = `<div>Health: ${currentHP}</div>`;
+      //const currentHP = `<div id='enemnyUnitCurrentHP${enemyNum}'>${newUnit.currentHP}</div>`;
+      const enemyHP = `<div class="unitHP ${newUnit.name}">Health: ${newUnit.currentHP}/${newUnit.currentHP}</div>`;
       const target = `<div class="targeting ${newUnit.name}">Targeting: </div>`;
       const enemyInfo = `<div class="unitInfo">${enemyName}${enemyHP}${target}</div>`;
       const enemyDice = `<div class="enemyDice ${newUnit.name}" id='enemyDice${enemyNum}'></div>`;
-      const newUnitTotal = `<div class="enemyUnit" id='enemyUnit${enemyNum}'>${enemyInfo}${enemyDice}</div>`;
+      const newUnitTotal = `<div class="enemyUnit" id='${newUnit.name}'>${enemyInfo}${enemyDice}</div>`;
       this.$enemySection.append(newUnitTotal);
       this.createRollingDice(newUnit);
     }
@@ -55,6 +56,39 @@ const game = {
     unit.showCurrentSide(unitZone);
   },
 
+  async enemyRolls() {
+    for (const unit of game.enemyUnits) {
+      const $rollingDice = game.$rollingSection.find(`.${unit.name}`);
+      await diceAnimate(unit, $rollingDice);
+      game.lockDice(unit);
+      unit.targetPlayer();
+      $rollingDice.remove();
+    }
+  },
+
+  async playerRolls() {
+    for (const unit of game.playerUnits) {
+      if (!unit.dice.isLocked) {
+        const $rollingDice = game.$rollingSection.find(`.${unit.name}`);
+        await diceAnimate(unit, $rollingDice);
+      }
+    }
+  },
+
+  async nextTurn() {
+    game.enemyUnits.forEach((unit) => {
+      game.createRollingDice(unit);
+    });
+    game.enemyRolls();
+    await sleep(2000);
+    const alivePlayerUnits = game.playerUnits.filter((unit) => unit.alive);
+    alivePlayerUnits.forEach((unit) => {
+      game.createRollingDice(unit);
+    });
+    game.rerollsLeft = 2;
+    game.turnPhase = 'playerRolling';
+  },
+
   enemyAttack() {
     game.enemyUnits.forEach((unit) => {
       const target = unit.target;
@@ -70,7 +104,9 @@ const game = {
       console.log(`total damage: ${totalDamage}`);
       target.currentHP -= totalDamage;
       target.updateHP();
+      target.updateShield();
     });
+    game.nextTurn();
   },
 
   playerEndRolls() {
@@ -101,35 +137,51 @@ const game = {
       targetUnit.shield += diceValue;
       targetUnit.updateShield(); // TODO
     }
+    game.$playerSection
+      .find(`.playerDice.${game.activePlayerUnit.name}`)
+      .empty();
+    game.activePlayerUnit.dice.currentSide = null;
+    game.activePlayerUnit = null;
+    game.turnPhase = 'playerAction';
     game.playerActions--;
     if (game.playerActions === 0) {
       console.log('player out of actions, it is now the enemy turn');
       // prompt user somehow
       game.turnPhase = 'enemyAttack';
+      game.enemyAttack();
       return;
     }
-    // function to remove activePlayerUnit dice
-    game.activePlayerUnit = null;
-    game.turnPhase = 'playerAction';
   },
 
   attackEnemyUnit(targetUnit) {
     const diceValue = game.activePlayerUnit.dice.currentSide.value;
     targetUnit.currentHP -= diceValue;
 
+    targetUnit.updateHP();
+
+    game.$playerSection
+      .find(`.playerDice.${game.activePlayerUnit.name}`)
+      .empty();
+    game.activePlayerUnit.dice.currentSide = null;
+    game.activePlayerUnit = null;
+    game.turnPhase = 'playerAction';
+
     game.playerActions--;
-    if (game.playerActions === 0) {
+    if (game.enemyUnits.length === 0) {
+      console.log('All enemies dead, you won!!!!! :3 ');
+      game.turnPhase = 'fightOver';
+    }
+    else if (game.playerActions === 0) {
       console.log('player out of actions, it is now the enemy turn');
       // prompt user somehow
       game.turnPhase = 'enemyAttack';
+      game.enemyAttack();
       return;
     }
-    // function to remove activePlayerUnit dice
-    game.activePlayerUnit = null;
-    game.turnPhase = 'playerAction';
   },
 };
 
+// ---------------------------------------------Unit classes---------------------------------------------
 class PlayerUnit {
   constructor(name, health, dice) {
     this.name = name;
@@ -156,6 +208,7 @@ class PlayerUnit {
     const $hp = game.$playerSection.find(`.unitHP.${this.name}`);
     if (this.currentHP <= 0) {
       $hp.text(`Dead :'(`);
+      this.alive = false;
     } else if (this.currentHP > this.totalHP) {
       this.currentHP = this.totalHP;
       $hp.text(`Health: ${this.currentHP}/${this.totalHP}`);
@@ -165,7 +218,8 @@ class PlayerUnit {
   }
 
   updateShield() {
-    // TODO
+    const $shield = game.$playerSection.find(`.unitShield.${this.name}`);
+    $shield.text(`Shield: ${this.shield}`);
   }
 }
 
@@ -201,9 +255,13 @@ class EnemyUnit {
   }
 
   updateHP() {
-    const $hp = game.$playerSection.find(`.unitHP.${this.name}`);
+    const $hp = game.$enemySection.find(`.unitHP.${this.name}`);
     if (this.currentHP <= 0) {
       $hp.text(`Dead :'(`);
+      // Kill the unit
+      game.$enemySection.find(`#${this.name}`).remove();
+      game.enemyUnits.splice((game.enemyUnits.findIndex((n) => n.name === this.name)), 1);
+
     } else {
       $hp.text(`Health: ${this.currentHP}/${this.totalHP}`);
     }
@@ -259,6 +317,7 @@ class DiceSide {
   }
 }
 
+// ---------------------------------------------Game Area click---------------------------------------------
 game.$playerSection.on('click', '.playerDice', (event) => {
   const $clickedElement = $(event.target);
   const unitName = $clickedElement.parent().find('.unitName').text();
@@ -289,15 +348,20 @@ game.$rollingSection.on('click', '.playerDice', (event) => {
 
 game.$enemySection.on('click', '.enemyUnit', (event) => {
   const $clickedElement = $(event.target);
-  const unitName = $clickedElement.find('.unitName').text();
+  const unitName = $clickedElement
+    .closest('.enemyUnit')
+    .find('.unitName')
+    .text();
   const enemyUnit =
     game.enemyUnits[game.enemyUnits.findIndex((n) => n.name === unitName)];
   if (game.turnPhase === 'playerAttacking') {
-    console.log(`attacking ${unitName}`);
+    console.log(`enemy unit is ${unitName}\n------------------`);
+    console.log(`attacking ${enemyUnit.name}`);
     game.attackEnemyUnit(enemyUnit);
   }
 });
 
+// ---------------------------------------------Reroll Button---------------------------------------------
 game.$DOM.on('click', '#reroll', async (event) => {
   const $rerollButton = $(event.target);
   $rerollButton.prop('disabled', true);
@@ -316,12 +380,7 @@ game.$DOM.on('click', '#reroll', async (event) => {
 
   if (game.rerollsLeft > 0) {
     console.log('rerolling');
-    for (const unit of game.playerUnits) {
-      if (!unit.dice.isLocked) {
-        const $rollingDice = game.$rollingSection.find(`.${unit.name}`);
-        await diceAnimate(unit, $rollingDice);
-      }
-    }
+    game.playerRolls();
     game.rerollsLeft--;
   }
 
@@ -435,13 +494,7 @@ $(document).ready(async () => {
   playerSetup();
   enemySetup();
   console.log('rerolling');
-  for (const unit of game.enemyUnits) {
-    const $rollingDice = game.$rollingSection.find(`.${unit.name}`);
-    await diceAnimate(unit, $rollingDice);
-    game.lockDice(unit);
-    unit.targetPlayer();
-    $rollingDice.remove();
-  }
+  game.enemyRolls();
   await sleep(1000);
   console.log('player rolls');
   game.playerUnits.forEach((unit) => {
