@@ -75,6 +75,20 @@ const game = {
     }
   },
 
+  async nextTurn() {
+    game.enemyUnits.forEach((unit) => {
+      game.createRollingDice(unit);
+    });
+    game.enemyRolls();
+    await sleep(2000);
+    const alivePlayerUnits = game.playerUnits.filter((unit) => unit.alive);
+    alivePlayerUnits.forEach((unit) => {
+      game.createRollingDice(unit);
+    });
+    game.rerollsLeft = 2;
+    game.turnPhase = 'playerRolling';
+  },
+
   enemyAttack() {
     game.enemyUnits.forEach((unit) => {
       const target = unit.target;
@@ -92,11 +106,7 @@ const game = {
       target.updateHP();
       target.updateShield();
     });
-    game.turnPhase = 'playerRolling';
-    const alivePlayerUnits = game.playerUnits.filter((unit) => unit.alive);
-    alivePlayerUnits.forEach((unit) => {
-      game.createRollingDice(unit);
-    });
+    game.nextTurn();
   },
 
   playerEndRolls() {
