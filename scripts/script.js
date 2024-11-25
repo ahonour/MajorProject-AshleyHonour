@@ -78,6 +78,10 @@ const game = {
   },
 
   async nextTurn() {
+    game.alivePlayerUnits.forEach((unit) => {
+      unit.shield = 0;
+      unit.updateShield();
+    });
     game.enemyUnits.forEach((unit) => {
       game.createRollingDice(unit);
     });
@@ -87,6 +91,7 @@ const game = {
     game.alivePlayerUnits.forEach((unit) => {
       game.createRollingDice(unit);
     });
+    game.playerRolls();
     game.rerollsLeft = 2;
     game.turnPhase = 'playerRolling';
   },
