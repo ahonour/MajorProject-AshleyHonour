@@ -115,8 +115,7 @@ const game = {
     });
     if (game.alivePlayerUnits.length === 0) {
       console.log('All your units are dead, Game over :( ');
-    }
-    else {
+    } else {
       game.nextTurn();
     }
   },
@@ -133,12 +132,16 @@ const game = {
   },
 
   playerDicePrompt() {
-    const remainingUnits = game.alivePlayerUnits.filter((unit)=>unit.dice.isLocked);
+    const remainingUnits = game.alivePlayerUnits.filter(
+      (unit) => unit.dice.isLocked
+    );
     // let alivePlayerUnits = game.playerUnits.filter((unit) => unit.alive);
     // alivePlayerUnits = alivePlayerUnits.filter((unit) => unit.isLocked);
     // console.log(`locked units are ${alivePlayerUnits}`);
-    remainingUnits.forEach(unit => {
-      game.$playerSection.find(`.playerDice.${unit.name}`).addClass('dicePrompt');
+    remainingUnits.forEach((unit) => {
+      game.$playerSection
+        .find(`.playerDice.${unit.name}`)
+        .addClass('dicePrompt');
     });
   },
 
@@ -151,8 +154,10 @@ const game = {
     } else {
       console.log('click on an allied unit to aid them');
       //const alivePlayerUnits = game.playerUnits.filter((unit) => unit.alive);
-      game.alivePlayerUnits.forEach(unit => {
-        game.$playerSection.find(`.playerDice.${unit.name}`).addClass('playerHighlight');
+      game.alivePlayerUnits.forEach((unit) => {
+        game.$playerSection
+          .find(`.playerDice.${unit.name}`)
+          .addClass('playerHighlight');
       });
       game.turnPhase = 'playerDefending';
     }
@@ -176,7 +181,7 @@ const game = {
     game.activePlayerUnit.dice.isLocked = false;
     game.$playerSection.find(`.playerDice`).removeClass('playerHighlight');
     game.activePlayerUnit = null;
-    
+
     game.turnPhase = 'playerAction';
     game.playerDicePrompt();
 
@@ -185,7 +190,7 @@ const game = {
       console.log('player out of actions, it is now the enemy turn');
       // prompt user somehow
       game.$DOM.find('#endTurn').addClass('dicePrompt');
-      game.turnPhase = 'enemyAttack';      
+      game.turnPhase = 'enemyAttack';
       return;
     }
   },
@@ -211,12 +216,11 @@ const game = {
     if (game.enemyUnits.length === 0) {
       console.log('All enemies dead, you won!!!!! :3 ');
       game.turnPhase = 'fightOver';
-    }
-    else if (game.playerActions === 0) {
+    } else if (game.playerActions === 0) {
       console.log('player out of actions, it is now the enemy turn');
-      // prompt user somehow      
+      // prompt user somehow
       game.$DOM.find('#endTurn').addClass('dicePrompt');
-      game.turnPhase = 'enemyAttack';   
+      game.turnPhase = 'enemyAttack';
       return;
     }
   },
@@ -250,7 +254,9 @@ class PlayerUnit {
     if (this.currentHP <= 0) {
       $hp.text(`Dead :'(`);
       this.alive = false;
-      game.alivePlayerUnits = game.alivePlayerUnits.filter(unit => unit !== this);
+      game.alivePlayerUnits = game.alivePlayerUnits.filter(
+        (unit) => unit !== this
+      );
     } else if (this.currentHP > this.totalHP) {
       this.currentHP = this.totalHP;
       $hp.text(`Health: ${this.currentHP}/${this.totalHP}`);
@@ -302,8 +308,10 @@ class EnemyUnit {
       $hp.text(`Dead :'(`);
       // Kill the unit
       game.$enemySection.find(`#${this.name}`).remove();
-      game.enemyUnits.splice((game.enemyUnits.findIndex((n) => n.name === this.name)), 1);
-
+      game.enemyUnits.splice(
+        game.enemyUnits.findIndex((n) => n.name === this.name),
+        1
+      );
     } else {
       $hp.text(`Health: ${this.currentHP}/${this.totalHP}`);
     }
@@ -432,9 +440,9 @@ game.$DOM.on('click', '#reroll', async (event) => {
 
 game.$DOM.on('click', '#endTurn', (event) => {
   const $endTurnButton = $(event.target);
-  if(game.turnPhase === 'enemyAttack') {
+  if (game.turnPhase === 'enemyAttack') {
     $endTurnButton.removeClass('dicePrompt');
-    game.enemyAttack();    
+    game.enemyAttack();
   }
 });
 
