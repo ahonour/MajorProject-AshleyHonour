@@ -405,8 +405,8 @@ game.$enemySection.on('click', '.enemyUnit', (event) => {
   const enemyUnit =
     game.enemyUnits[game.enemyUnits.findIndex((n) => n.name === unitName)];
   if (game.turnPhase === 'playerAttacking') {
-    console.log(`enemy unit is ${unitName}\n------------------`);
-    console.log(`attacking ${enemyUnit.name}`);
+    // console.log(`enemy unit is ${unitName}\n------------------`);
+    // console.log(`attacking ${enemyUnit.name}`);
     game.attackEnemyUnit(enemyUnit);
   }
 });
