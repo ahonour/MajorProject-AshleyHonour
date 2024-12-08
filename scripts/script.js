@@ -6,6 +6,8 @@ const game = {
   playerUnits: [],
   alivePlayerUnits: [],
   enemyUnits: [],
+  rewardsList: [],
+  currentRewards: [],
   turnPhase: 'enemy',
   rerollsLeft: 2,
   maxRerolls: 2,
@@ -219,6 +221,7 @@ const game = {
     if (game.enemyUnits.length === 0) {
       console.log('All enemies dead, you won!!!!! :3 ');
       game.turnPhase = 'fightOver';
+      game.fightOver();
     } else if (game.playerActions === 0) {
       console.log('player out of actions, it is now the enemy turn');
       // prompt user somehow
@@ -229,11 +232,26 @@ const game = {
   },
 
   fightOver() {
+    game.generateRewards();
     $('#rewardsModal').modal('show');
   },
 
   generateRewards() {
-    const rewards = [];
+    game.currentRewards = [];
+    const reward1 =
+      game.rewardsList[Math.floor(Math.random() * game.rewardsList.length)];
+    do {
+      var reward2 =
+        game.rewardsList[Math.floor(Math.random() * game.rewardsList.length)];
+    } while (reward2 === reward1);
+    do {
+      var reward3 =
+        game.rewardsList[Math.floor(Math.random() * game.rewardsList.length)];
+    } while (reward3 === reward1 || reward3 === reward2);
+    game.currentRewards.push(reward1, reward2, reward3);
+    game.$rewardsModal.find('#reward-1-text').text(reward1.text);
+    game.$rewardsModal.find('#reward-2-text').text(reward2.text);
+    game.$rewardsModal.find('#reward-3-text').text(reward3.text);
   },
 };
 
@@ -383,27 +401,70 @@ class DiceSide {
 // General Rewards: +1 All healing sides, +1 All shield sides, +1 specific side, +1 reroll, +max health, -enemy max health
 // Unit specific rewards: +1 all damage sides
 
+function RewardSetup() {
+  const healReward = new Reward(
+    'All healing sides +1',
+    Reward.prototype.modifyByType,
+    ['heal', 1]
+  );
+  const shieldReward = new Reward(
+    'All shield sides +1',
+    Reward.prototype.modifyByType,
+    ['shield', 1]
+  );
+  const rerollReward = new Reward(
+    'Reroll +1',
+    Reward.prototype.modifyRerolls,
+    1
+  );
+  const playerHealthReward = new Reward(
+    'Player max health +1',
+    Reward.prototype.modifyTotalHP,
+    ['player', 1]
+  );
+  const enemyHealthReward = new Reward(
+    'Enemy max health -1',
+    Reward.prototype.modifyTotalHP,
+    ['enemy', -1]
+  );
+  game.rewardsList.push(
+    healReward,
+    shieldReward,
+    rerollReward,
+    playerHealthReward,
+    enemyHealthReward
+  );
+}
+
 class Reward {
-  constructor(text, effect) {
+  constructor(text, method, parameters) {
     this.text = text;
-    this.effect = effect;
+    this.method = method;
+    this.parameters = parameters;
   }
 
   applyEffect() {
-    this.effect();
+    this.method(this.parameters);
   }
 
-  modifyByType(type, bonus) {
+  modifyByType(paramArray) {
+    const type = paramArray[0];
+    const bonus = paramArray[1];
+    const sides = ['top', 'left', 'middle', 'bottom', 'right', 'farRight'];
+
     game.playerUnits.forEach((unit) => {
-      unit.dice.forEach((side) => {
-        if (side.type === type) {
-          side.value += bonus;
+      sides.forEach((side) => {
+        if (unit.dice[side].type === type) {
+          console.log(`adding ${bonus} to ${unit.name}'s ${type} side`);
+          unit.dice[side].value += bonus;
         }
       });
     });
   }
 
-  modifyTotalHP(unitType, bonus) {
+  modifyTotalHP(paramArray) {
+    const unitType = paramArray[0];
+    const bonus = paramArray[1];
     if (unitType === 'player') {
       game.playerUnits.forEach((unit) => {
         unit.totalHP += bonus;
@@ -415,11 +476,21 @@ class Reward {
     }
   }
 
-  modifyRerolls(bonus) {
+  modifyRerolls(paramArray) {
+    const bonus = paramArray;
     game.maxRerolls += bonus;
   }
 }
 
+// ---------------------------------------------Modal Click---------------------------------------------
+game.$rewardsModal.on('click', '.reward', (event) => {
+  const $clickedElementId = $(event.target).attr('id');
+  const rewardNum = $clickedElementId.slice(-1) - 1;
+  const reward = game.currentRewards[rewardNum];
+  reward.applyEffect();
+  console.log(`clicked on reward ${rewardNum + 1}`);
+  game.$rewardsModal.modal('hide');
+});
 // ---------------------------------------------Game Area click---------------------------------------------
 game.$playerSection.on('click', '.playerDice', (event) => {
   const $clickedElement = $(event.target);
@@ -530,6 +601,7 @@ function playerSetup() {
   const p1Right = new DiceSide(3, 'damage');
   const p1Bottom = new DiceSide(5, 'damage');
   const p1farRight = new DiceSide(6, 'damage');
+  const p3farRight = new DiceSide(1, 'shield');
 
   const p1Dice = new Dice(
     p1Top,
@@ -548,12 +620,12 @@ function playerSetup() {
     p1farRight
   );
   const p3Dice = new Dice(
-    p1Top,
-    p1Left,
     p1Middle,
-    p1Bottom,
-    p1Right,
-    p1farRight
+    p1Middle,
+    p1Middle,
+    p1Middle,
+    p1Middle,
+    p3farRight
   );
   const p1 = new PlayerUnit('Ashley', 10, p1Dice);
   const p2 = new PlayerUnit('Jevan', 4, p2Dice);
@@ -601,6 +673,7 @@ function enemySetup() {
 $(document).ready(async () => {
   const $rerollButton = $('#reroll');
   $rerollButton.prop('disabled', true);
+  RewardSetup();
   console.log('enemy rolls');
   playerSetup();
   enemySetup();
