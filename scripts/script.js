@@ -12,6 +12,7 @@ const game = {
   rerollsLeft: 2,
   maxRerolls: 2,
   enemyHpModifier: 0,
+  enemyDamageModifier: 0,
   activePlayerUnit: null,
   playerActions: null,
   $DOM: $('#game'),
@@ -233,7 +234,7 @@ const game = {
 
   fightOver() {
     game.generateRewards();
-    $('#rewardsModal').modal('show');
+    game.$rewardsModal.modal('show');
   },
 
   generateRewards() {
@@ -297,6 +298,11 @@ class PlayerUnit {
   updateShield() {
     const $shield = game.$playerSection.find(`.unitShield.${this.name}`);
     $shield.text(`Shield: ${this.shield}`);
+  }
+
+  fullHeal() {
+    this.currentHP = this.totalHP;
+    this.updateHP();
   }
 }
 
@@ -667,6 +673,25 @@ function enemySetup() {
   const p1 = new EnemyUnit('bee1', 10 + game.enemyHpModifier, e1Dice);
   const p2 = new EnemyUnit('bee2', 4 + game.enemyHpModifier, e2Dice);
   const p3 = new EnemyUnit('bee3', 2 + game.enemyHpModifier, e3Dice);
+}
+
+function generateGoblin() {
+  const e1Top = new DiceSide(4 + game.enemyDamageModifier, 'damage');
+  const e1Left = new DiceSide(4 + game.enemyDamageModifier, 'damage');
+  const e1Middle = new DiceSide(2 + game.enemyDamageModifier, 'damage');
+  const e1Bottom = new DiceSide(2 + game.enemyDamageModifier, 'damage');
+  const e1Right = new DiceSide(1 + game.enemyDamageModifier, 'damage');
+  const e1RightMost = new DiceSide(1 + game.enemyDamageModifier, 'damage');
+
+  const e1Dice = new Dice(
+    e1Top,
+    e1Left,
+    e1Middle,
+    e1Bottom,
+    e1Right,
+    e1RightMost
+  );
+  const e1 = new EnemyUnit('Goblin', 8 + game.enemyHpModifier, e1Dice);
 }
 
 // ---------------------------------------------Game Start-----------------------------------------------
