@@ -1,5 +1,9 @@
 'use strict';
 
+//TODO: Fix the way enemy dice are locked to account for multiple enemies of the same type
+// Use map instead of array for units?
+// Or use id maybe
+
 const game = {
   title: 'Slice and Dice',
   isRunning: false,
@@ -8,6 +12,7 @@ const game = {
   enemyUnits: [],
   rewardsList: [],
   currentRewards: [],
+  fightNumber: 0,
   turnPhase: 'enemy',
   rerollsLeft: 2,
   maxRerolls: 2,
@@ -20,6 +25,7 @@ const game = {
   $rollingSection: $('#rollingArea'),
   $enemySection: $('#enemyArea'),
   $rewardsModal: $('#rewardsModal'),
+
   addNewUnit(newUnit) {
     if (newUnit.ally) {
       this.playerUnits.push(newUnit);
@@ -47,6 +53,7 @@ const game = {
       this.createRollingDice(newUnit);
     }
   },
+
   createRollingDice(unit) {
     const $unitRollingDice = unit.ally
       ? $(`<div class="playerDice ${unit.name}"></div>`)
@@ -56,6 +63,7 @@ const game = {
     unit.getRandomSide();
     unit.showCurrentSide($unitRollingDice);
   },
+
   lockDice(unit) {
     unit.dice.isLocked = true;
     const unitZone = unit.ally
@@ -253,6 +261,43 @@ const game = {
     game.$rewardsModal.find('#reward-1-text').text(reward1.text);
     game.$rewardsModal.find('#reward-2-text').text(reward2.text);
     game.$rewardsModal.find('#reward-3-text').text(reward3.text);
+  },
+
+  nextFight() {
+    game.fightNumber++;
+    switch (game.fightNumber) {
+      case 1:
+        game.fightOne();
+        break;
+      case 2:
+        game.fightTwo();
+        break;
+      default:
+        break;
+    }
+  },
+
+  fightOne() {
+    const rand = Math.floor(Math.random() * 2);
+    switch (rand) {
+      case 0:
+        generateGoblin();
+        generateBee();
+        break;
+      case 1:
+        generateBee();
+        generateBee();
+        generateBee();
+        break;
+      default:
+        generateBee();
+        break;
+    }
+  },
+
+  fightTwo() {
+    generateGoblin();
+    generateGoblin();
   },
 };
 
@@ -495,8 +540,9 @@ game.$rewardsModal.on('click', '.reward', (event) => {
   const reward = game.currentRewards[rewardNum];
   reward.applyEffect();
   console.log(`clicked on reward ${rewardNum + 1}`);
-  game.$rewardsModal.modal('hide');
+  game.nextFight();
 });
+
 // ---------------------------------------------Game Area click---------------------------------------------
 game.$playerSection.on('click', '.playerDice', (event) => {
   const $clickedElement = $(event.target);
@@ -676,22 +722,41 @@ function enemySetup() {
 }
 
 function generateGoblin() {
-  const e1Top = new DiceSide(4 + game.enemyDamageModifier, 'damage');
-  const e1Left = new DiceSide(4 + game.enemyDamageModifier, 'damage');
-  const e1Middle = new DiceSide(2 + game.enemyDamageModifier, 'damage');
-  const e1Bottom = new DiceSide(2 + game.enemyDamageModifier, 'damage');
-  const e1Right = new DiceSide(1 + game.enemyDamageModifier, 'damage');
-  const e1RightMost = new DiceSide(1 + game.enemyDamageModifier, 'damage');
+  const gobTop = new DiceSide(4 + game.enemyDamageModifier, 'damage');
+  const gobLeft = new DiceSide(4 + game.enemyDamageModifier, 'damage');
+  const gobMiddle = new DiceSide(2 + game.enemyDamageModifier, 'damage');
+  const gobBottom = new DiceSide(2 + game.enemyDamageModifier, 'damage');
+  const gobRight = new DiceSide(1 + game.enemyDamageModifier, 'damage');
+  const egobRightMost = new DiceSide(1 + game.enemyDamageModifier, 'damage');
 
-  const e1Dice = new Dice(
-    e1Top,
-    e1Left,
-    e1Middle,
-    e1Bottom,
-    e1Right,
-    e1RightMost
+  const gobDice = new Dice(
+    gobTop,
+    gobLeft,
+    gobMiddle,
+    gobBottom,
+    gobRight,
+    egobRightMost
   );
-  const e1 = new EnemyUnit('Goblin', 8 + game.enemyHpModifier, e1Dice);
+  const gob = new EnemyUnit('Goblin', 8 + game.enemyHpModifier, gobDice);
+}
+
+function generateBee() {
+  const beeTop = new DiceSide(2 + game.enemyDamageModifier, 'damage');
+  const beeLeft = new DiceSide(4 + game.enemyDamageModifier, 'damage');
+  const beeMiddle = new DiceSide(1 + game.enemyDamageModifier, 'damage');
+  const beeBottom = new DiceSide(3 + game.enemyDamageModifier, 'damage');
+  const beeRight = new DiceSide(5 + game.enemyDamageModifier, 'damage');
+  const beeRightMost = new DiceSide(6 + game.enemyDamageModifier, 'damage');
+
+  const beeDice = new Dice(
+    beeTop,
+    beeLeft,
+    beeMiddle,
+    beeBottom,
+    beeRight,
+    beeRightMost
+  );
+  const bee = new EnemyUnit('Bee', 3 + game.enemyHpModifier, beeDice);
 }
 
 // ---------------------------------------------Game Start-----------------------------------------------
@@ -701,7 +766,8 @@ $(document).ready(async () => {
   RewardSetup();
   console.log('enemy rolls');
   playerSetup();
-  enemySetup();
+  game.nextFight();
+  // enemySetup();
   console.log('rerolling');
   game.enemyRolls();
   await sleep(1000);
