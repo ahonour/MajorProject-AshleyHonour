@@ -7,12 +7,15 @@ const game = {
   enemyUnits: [],
   turnPhase: 'enemy',
   rerollsLeft: 2,
+  maxRerolls: 2,
+  enemyHpModifier: 0,
   activePlayerUnit: null,
   playerActions: null,
   $DOM: $('#game'),
   $playerSection: $('#playerArea'),
   $rollingSection: $('#rollingArea'),
   $enemySection: $('#enemyArea'),
+  $rewardsModal: $('#rewardsModal'),
   addNewUnit(newUnit) {
     if (newUnit.ally) {
       this.playerUnits.push(newUnit);
@@ -170,8 +173,7 @@ const game = {
     if (game.enemyUnits.length === 0) {
       console.log('All enemies dead, you won!!!!! :3 ');
       game.turnPhase = 'fightOver';
-    }
-    else if (game.playerActions === 0) {
+    } else if (game.playerActions === 0) {
       console.log('player out of actions, it is now the enemy turn');
       // prompt user somehow
       game.turnPhase = 'enemyAttack';
@@ -179,9 +181,17 @@ const game = {
       return;
     }
   },
+
+  fightOver() {
+    $('#rewardsModal').modal('show');
+  },
+
+  generateRewards() {
+    const rewards = [];
+  },
 };
 
-// ---------------------------------------------Unit classes---------------------------------------------
+// ---------------------------------------------Classes---------------------------------------------
 class PlayerUnit {
   constructor(name, health, dice) {
     this.name = name;
@@ -260,8 +270,10 @@ class EnemyUnit {
       $hp.text(`Dead :'(`);
       // Kill the unit
       game.$enemySection.find(`#${this.name}`).remove();
-      game.enemyUnits.splice((game.enemyUnits.findIndex((n) => n.name === this.name)), 1);
-
+      game.enemyUnits.splice(
+        game.enemyUnits.findIndex((n) => n.name === this.name),
+        1
+      );
     } else {
       $hp.text(`Health: ${this.currentHP}/${this.totalHP}`);
     }
@@ -315,6 +327,34 @@ class DiceSide {
     this.value = value;
     this.type = type;
   }
+}
+
+// ---------------------------------------------Rewards---------------------------------------------
+
+// General Rewards: +1 All healing sides, +1 All shield sides, +1 specific side, +1 reroll, +max health, -enemy max health
+// Unit specific rewards: +1 all damage sides
+
+class Reward {
+  constructor(text, effect) {
+    this.text = text;
+    this.effect = effect;
+  }
+
+  applyEffect() {
+    this.effect();
+  }
+
+  modifyByType(type, bonus) {
+    game.playerUnits.forEach((unit) => {
+      unit.dice.forEach((side) => {
+        if (side.type === type) {
+          side.value += bonus;
+        }
+      });
+    });
+  }
+
+  modifyTotalHP(unitType, bonus) {}
 }
 
 // ---------------------------------------------Game Area click---------------------------------------------
@@ -481,9 +521,9 @@ function enemySetup() {
     p1Right,
     p1farRight
   );
-  const p1 = new EnemyUnit('bee1', 10, e1Dice);
-  const p2 = new EnemyUnit('bee2', 4, e2Dice);
-  const p3 = new EnemyUnit('bee3', 2, e3Dice);
+  const p1 = new EnemyUnit('bee1', 10 + game.enemyHpModifier, e1Dice);
+  const p2 = new EnemyUnit('bee2', 4 + game.enemyHpModifier, e2Dice);
+  const p3 = new EnemyUnit('bee3', 2 + game.enemyHpModifier, e3Dice);
 }
 
 // ---------------------------------------------Game Start-----------------------------------------------
