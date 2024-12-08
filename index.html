@@ -24,6 +24,47 @@
       <button id="endTurn">end turn</button>
     </main>
     <footer></footer>
+    <!-- Modal -->
+    <div
+      class="modal fade"
+      id="rewardsModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="rewardsModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLongTitle">
+              Choose a Reward
+            </h5>
+            <!-- <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button> -->
+          </div>
+          <div class="modal-body">
+            <div id="reward-1-text">Reward 1</div>
+            <div id="reward-2-text">Reward 2</div>
+            <div id="reward-3-text">Reward 3</div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary reward" id="reward-1">
+              Reward 1
+            </button>
+            <button class="btn btn-primary reward" id="reward-2">
+              Reward 2
+            </button>
+            <button class="btn btn-primary reward" id="reward-3">
+              Reward 3
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
     <script
       src="https://code.jquery.com/jquery-3.7.1.min.js"
       integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
