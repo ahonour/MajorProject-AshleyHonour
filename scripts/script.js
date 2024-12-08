@@ -88,7 +88,7 @@ const game = {
     alivePlayerUnits.forEach((unit) => {
       game.createRollingDice(unit);
     });
-    game.rerollsLeft = 2;
+    game.rerollsLeft = game.maxRerolls;
     game.turnPhase = 'playerRolling';
   },
 
@@ -354,7 +354,21 @@ class Reward {
     });
   }
 
-  modifyTotalHP(unitType, bonus) {}
+  modifyTotalHP(unitType, bonus) {
+    if (unitType === 'player') {
+      game.playerUnits.forEach((unit) => {
+        unit.totalHP += bonus;
+        unit.currentHP += bonus;
+        unit.updateHP();
+      });
+    } else if (unitType === 'enemy') {
+      game.enemyHpModifier += bonus;
+    }
+  }
+
+  modifyRerolls(bonus) {
+    game.maxRerolls += bonus;
+  }
 }
 
 // ---------------------------------------------Game Area click---------------------------------------------
