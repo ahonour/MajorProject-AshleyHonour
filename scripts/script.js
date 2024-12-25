@@ -94,8 +94,8 @@ const game = {
         }`;
 
     const $unitRollingDice = unit.ally
-      ? $(`<div class="playerDice" id="${diceId}"></div>`)
-      : $(`<div class="enemyDice" id="${diceId}"></div>`);
+      ? $(`<div class="playerDice ${unit.name}" id="${diceId}"></div>`)
+      : $(`<div class="enemyDice ${unit.name}" id="${diceId}"></div>`);
 
     if (unit.ally) {
       this.$rollingSection.append($unitRollingDice);
