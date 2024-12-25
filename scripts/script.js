@@ -36,7 +36,8 @@ const game = {
       const playerShield = `<div class="unitShield ${newUnit.name}">Shield: 0</div>`;
       const playerInfo = `<div class="unitInfo">${playerName}${playerHP}${playerShield}</div>`;
       const playerDice = `<div class="playerDice ${newUnit.name}" id='playerDice${playerNum}'></div>`;
-      const newUnitTotal = `<div class="playerUnit ${newUnit.name}" id='playerUnit${playerNum}'>${playerInfo}${playerDice}</div>`;
+      const diceInfo = `<button class= "diceInfo ${newUnit.name}">?</button>`;
+      const newUnitTotal = `<div class="playerUnit ${newUnit.name}" id='playerUnit${playerNum}'>${playerInfo}${playerDice}${diceInfo}</div>`;
       this.$playerSection.append(newUnitTotal);
       this.createRollingDice(newUnit);
     } else {
@@ -48,7 +49,8 @@ const game = {
       const target = `<div class="targeting ${newUnit.name}">Targeting: </div>`;
       const enemyInfo = `<div class="unitInfo">${enemyName}${enemyHP}${target}</div>`;
       const enemyDice = `<div class="enemyDice ${newUnit.name}" id='enemyDice${enemyNum}'></div>`;
-      const newUnitTotal = `<div class="enemyUnit" id='${newUnit.name}'>${enemyInfo}${enemyDice}</div>`;
+      const diceInfo = `<button class= "diceInfo ${newUnit.name}">?</button>`;
+      const newUnitTotal = `<div class="enemyUnit" id='${newUnit.name}'>${enemyInfo}${enemyDice}${diceInfo}</div>`;
       this.$enemySection.append(newUnitTotal);
       this.createRollingDice(newUnit);
     }
@@ -59,7 +61,12 @@ const game = {
       ? $(`<div class="playerDice ${unit.name}"></div>`)
       : $(`<div class="enemyDice ${unit.name}"></div>`);
     //const $unitRollingDice = $(`<div class="playerDice ${unit.name}"></div>`);
-    this.$rollingSection.append($unitRollingDice);
+    if (unit.ally) {
+      this.$rollingSection.append($unitRollingDice);
+    } else {
+      this.$rollingSection.find('.enemyDiceArea').append($unitRollingDice);
+    }
+
     unit.getRandomSide();
     unit.showCurrentSide($unitRollingDice);
   },
