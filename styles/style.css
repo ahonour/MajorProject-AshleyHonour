@@ -95,7 +95,7 @@ main > header {
   align-items: flex-end;
 }
 
-main > section {
+#game > section {
   margin: 2rem;
   border: 2px solid black;
 }
