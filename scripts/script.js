@@ -27,9 +27,10 @@ const game = {
   $rollingSection: $('#rollingArea'),
   $enemySection: $('#enemyArea'),
   $rewardsModal: $('#rewardsModal'),
+  $diceModal: $('#diceModal'),
   $rerollButton: $('#reroll'),
 
-  gameStart() {
+  async gameStart() {
     game.playerName = landing.$playerName.val();
     game.$playerName.text(game.playerName);
     game.$winstreak.text(`Winstreak: ${game.winstreak}`);
@@ -47,15 +48,15 @@ const game = {
     game.activePlayerUnit = null;
     game.playerActions = null;
 
-    game.$rerollButton.prop('disabled', true);
+    // game.$rerollButton.prop('disabled', true);
     game.difficultySetup();
     game.rerollsLeft = game.maxRerolls;
-    $(`#rollCounter`).text(`Rerolls left: ${game.rerollsLeft}`);
+    // $(`#rollCounter`).text(`Rerolls left: ${game.rerollsLeft}`);
     game.rewardSetup();
     playerSetup();
     game.nextFight();
-    game.enemyRolls();
-    game.playerRolls();
+    // await game.enemyRolls();
+    // game.playerRolls();
     game.$rerollButton.prop('disabled', false);
   },
 
@@ -126,7 +127,7 @@ const game = {
       const newUnitTotal = `<div class="playerUnit ${newUnit.name}" id='${playerId}'>${playerInfo}${playerDice}${diceInfo}</div>`;
       this.$playerSection.append(newUnitTotal);
       newUnit.id = playerId;
-      this.createRollingDice(newUnit);
+      // this.createRollingDice(newUnit);
     } else {
       const enemyId = `enemy_${newUnit.name}_${this.enemyUnits.size}`;
       this.enemyUnits.set(enemyId, newUnit);
@@ -139,7 +140,7 @@ const game = {
       const newUnitTotal = `<div class="enemyUnit" id='${enemyId}'>${enemyInfo}${enemyDice}${diceInfo}</div>`;
       this.$enemySection.append(newUnitTotal);
       newUnit.id = enemyId;
-      this.createRollingDice(newUnit);
+      // this.createRollingDice(newUnit);
     }
   },
 
@@ -195,7 +196,7 @@ const game = {
     for (const unitMap of game.playerUnits) {
       const unit = unitMap[1];
       const $rollingDice = game.$rollingSection.find(`#${unitMap[0]}`);
-      await diceAnimate(unit, $rollingDice);
+      diceAnimate(unit, $rollingDice);
     }
   },
 
@@ -207,8 +208,8 @@ const game = {
     game.enemyUnits.forEach((unit) => {
       game.createRollingDice(unit);
     });
-    game.enemyRolls();
-    await sleep(2000);
+    await game.enemyRolls();
+    await sleep(500);
     //const alivePlayerUnits = game.playerUnits.filter((unit) => unit.alive);
     game.alivePlayerUnits.forEach((unit) => {
       game.createRollingDice(unit);
@@ -346,6 +347,20 @@ const game = {
   },
 
   fightOver() {
+    const playerDice = game.$playerSection.find('.playerDice');
+    playerDice.empty();
+    playerDice.removeClass('dicePrompt');
+    game.activePlayerUnit = null;
+    game.playerActions = 0;
+    game.$DOM.find('#endTurn').removeClass('dicePrompt');
+    game.alivePlayerUnits = [];
+    for (const unit of game.playerUnits.values()) {
+      unit.fullHeal();
+      unit.alive = true;
+      unit.dice.isLocked = false;
+      game.alivePlayerUnits.push(unit);
+    }
+
     game.generateRewards();
     game.$rewardsModal.modal({
       backdrop: 'static',
@@ -374,6 +389,7 @@ const game = {
 
   nextFight() {
     game.fightNumber++;
+
     switch (game.fightNumber) {
       case 1:
         game.fightOne();
@@ -384,6 +400,7 @@ const game = {
       default:
         break;
     }
+    game.nextTurn();
   },
 
   fightOne() {
@@ -570,6 +587,29 @@ class PlayerUnit {
     this.currentHP = this.totalHP;
     this.updateHP();
   }
+
+  displayDice() {
+    const $diceModal = game.$diceModal;
+    $diceModal.find('.modal-title').text(`${this.name} Dice Info`);
+    $diceModal
+      .find('#topSide')
+      .text(`${this.dice.top.value} ${this.dice.top.type}`);
+    $diceModal
+      .find('#leftSide')
+      .text(`${this.dice.left.value} ${this.dice.left.type}`);
+    $diceModal
+      .find('#middleSide')
+      .text(`${this.dice.middle.value} ${this.dice.middle.type}`);
+    $diceModal
+      .find('#bottomSide')
+      .text(`${this.dice.bottom.value} ${this.dice.bottom.type}`);
+    $diceModal
+      .find('#rightSide')
+      .text(`${this.dice.right.value} ${this.dice.right.type}`);
+    $diceModal
+      .find('#rightMostSide')
+      .text(`${this.dice.farRight.value} ${this.dice.farRight.type}`);
+  }
 }
 
 class EnemyUnit {
@@ -618,6 +658,29 @@ class EnemyUnit {
     } else {
       $hp.text(`Health: ${this.currentHP}/${this.totalHP}`);
     }
+  }
+
+  displayDice() {
+    const $diceModal = game.$diceModal;
+    $diceModal.find('.modal-title').text(`${this.name} Dice Info`);
+    $diceModal
+      .find('#topSide')
+      .text(`${this.dice.top.value} ${this.dice.top.type}`);
+    $diceModal
+      .find('#leftSide')
+      .text(`${this.dice.left.value} ${this.dice.left.type}`);
+    $diceModal
+      .find('#middleSide')
+      .text(`${this.dice.middle.value} ${this.dice.middle.type}`);
+    $diceModal
+      .find('#bottomSide')
+      .text(`${this.dice.bottom.value} ${this.dice.bottom.type}`);
+    $diceModal
+      .find('#rightSide')
+      .text(`${this.dice.right.value} ${this.dice.right.type}`);
+    $diceModal
+      .find('#rightMostSide')
+      .text(`${this.dice.farRight.value} ${this.dice.farRight.type}`);
   }
 }
 
@@ -730,6 +793,23 @@ game.$rewardsModal.on('click', '.reward', (event) => {
   console.log(`clicked on reward ${rewardNum + 1}`);
   game.$rewardsModal.modal('hide');
   game.nextFight();
+});
+
+game.$DOM.on('click', '.diceInfo', (event) => {
+  const $clickedElement = $(event.target);
+  const isPlayer =
+    $clickedElement.closest('section').attr('id') === 'playerArea';
+  if (isPlayer) {
+    const unitId = $clickedElement.closest('.playerUnit').attr('id');
+    const unit = game.playerUnits.get(`${unitId}`);
+    unit.displayDice();
+  } else {
+    const unitId = $clickedElement.closest('.enemyUnit').attr('id');
+    const unit = game.enemyUnits.get(`${unitId}`);
+    unit.displayDice();
+  }
+
+  game.$diceModal.modal('show');
 });
 
 // ---------------------------------------------Game Area click---------------------------------------------

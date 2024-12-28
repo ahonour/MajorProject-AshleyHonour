@@ -319,3 +319,49 @@ footer {
 #playerUnit1 {
   border: 3px solid var(--jevan);
 }
+
+#diceModal #dice-sides {
+  display: grid;
+  margin: auto;
+  height: 350px;
+  width: 450px;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-areas:
+    '. topSide . .'
+    'leftSide middleSide rightSide rightMostSide'
+    '. bottomSide . .';
+}
+
+#diceModal #dice-sides > div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid black;
+  height: 100px;
+  width: 100px;
+}
+
+#diceModal #dice-sides #topSide {
+  grid-area: topSide;
+}
+
+#diceModal #dice-sides #leftSide {
+  grid-area: leftSide;
+}
+
+#diceModal #dice-sides #middleSide {
+  grid-area: middleSide;
+}
+
+#diceModal #dice-sides #rightSide {
+  grid-area: rightSide;
+}
+
+#diceModal #dice-sides #rightMostSide {
+  grid-area: rightMostSide;
+}
+
+#diceModal #dice-sides #bottomSide {
+  grid-area: bottomSide;
+}
