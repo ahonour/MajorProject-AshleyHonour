@@ -14,8 +14,66 @@
     </head>
   </head>
   <body>
+    <section id="landing">
+      <h2>Slice and Dice</h2>
+      <p>
+        Welcome to Slice and Dice (Ashley's version)! If you need an explanation
+        of the rules, click the help button below. Otherwise, enter your name,
+        select your difficulty and get started!
+      </p>
+      <form id="startForm">
+        <input
+          type="text"
+          id="playerName"
+          placeholder="Enter your name"
+          required
+        />
+        <fieldset>
+          <legend>Difficulty</legend>
+          <input
+            type="radio"
+            name="difficulty"
+            id="easy"
+            value="easy"
+            required
+          />
+          <label for="easy">Easy</label>
+          <input
+            type="radio"
+            name="difficulty"
+            id="medium"
+            value="medium"
+            required
+          />
+          <label for="medium">Medium</label>
+          <input
+            type="radio"
+            name="difficulty"
+            id="hard"
+            value="hard"
+            required
+          />
+          <label for="hard">Hard</label>
+        </fieldset>
+        <div id="difficultyExplanation"></div>
+        <button id="startGame" type="submit">Start Game</button>
+      </form>
+
+      <button id="helpButton">Help</button>
+    </section>
+    <section id="help">
+      <h2>Meow</h2>
+      <button id="help-return">Return</button>
+    </section>
+    <section id="gameover">
+      <h2>Game Over</h2>
+      <p id="gameover-text"></p>
+      <button id="restart">Back to Menu</button>
+    </section>
     <main id="game">
-      <header id="user-buttons"></header>
+      <header id="game-header">
+        <h1>Slice and Dice</h1>
+      </header>
       <section id="playerArea" class="playerArea"></section>
       <section id="rollingArea" class="rollingArea">
         <div class="enemyDiceArea"></div>
@@ -24,8 +82,12 @@
       <button id="reroll">reroll</button>
       <div id="rollCounter">Rerolls left: 2</div>
       <button id="endTurn">end turn</button>
+      <footer>
+        <button id="game-help">Gwehh</button>
+        <button id="game-reset">Meowww</button>
+      </footer>
     </main>
-    <footer></footer>
+
     <!-- Modal -->
     <div
       class="modal fade"
