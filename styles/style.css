@@ -10,29 +10,147 @@
   box-sizing: border-box;
 }
 
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
 body {
   display: flex;
   flex-direction: column;
-
   min-height: 100vh;
-
   min-width: 900px;
 }
 
-body > main {
-  display: grid;
+#landing {
+  display: none;
+  margin: auto;
+  width: 60vw;
+  height: 90vh;
+  background-color: rgba(65, 105, 225, 0.705);
+}
+
+#landing > h2 {
+  width: 100%;
+  height: fit-content;
+  text-align: center;
+}
+
+#landing > button {
+  height: fit-content;
+  padding: 0.5rem;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.705);
+}
+
+#landing p,
+#landing button,
+#landing form,
+#landing input {
+  text-align: center;
+}
+
+#easy,
+#medium,
+#hard {
+  width: max-content;
+  border: none;
+  border-radius: 5px;
+  padding: 0.2rem;
+}
+
+#easy {
+  background-color: rgb(32, 152, 84);
+}
+
+#medium {
+  background-color: rgba(255, 255, 0, 0.705);
+}
+
+#hard {
+  background-color: rgba(255, 0, 0, 0.705);
+}
+
+#game {
+  /* display: grid; */
+  display: none;
   width: 100%;
   height: 90vh;
   grid-template-columns: 30vw 1fr 30vw;
-  grid-template-rows: 15vh 1fr;
+  grid-template-rows: 15vh 1fr 5vh;
   grid-template-areas:
     'header header header'
-    'playerArea diceArea enemyArea';
+    'playerArea diceArea enemyArea'
+    'footer footer footer';
   background-color: rgba(127, 115, 115, 0.594);
 }
 
-main > header {
+#help {
+  display: none;
+  position: relative;
+  width: 60vw;
+  height: 90vh;
+  background-color: rgba(65, 225, 182, 0.705);
+  margin: auto;
+  flex-direction: column;
+}
+
+#help > h2 {
+  width: 100%;
+  height: fit-content;
+  text-align: center;
+}
+
+#help-return {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  height: fit-content;
+  padding: 0.5rem;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.705);
+  align-self: flex-end;
+  margin: 1rem;
+}
+
+#gameover {
+  display: none;
+  position: relative;
+  width: 60vw;
+  height: 90vh;
+  background-color: rgba(225, 65, 65, 0.705);
+  margin: auto;
+  flex-direction: column;
+}
+
+#gameover > h2 {
+  width: 100%;
+  height: fit-content;
+  text-align: center;
+}
+
+#restart {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  height: fit-content;
+  padding: 0.5rem;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.705);
+  align-self: flex-end;
+  margin: 1rem;
+}
+
+main > #game-header {
   grid-area: header;
+  text-align: center;
   background-color: rgba(127, 255, 212, 0.605);
 }
 
@@ -58,12 +176,13 @@ main > header {
   grid-area: diceArea;
   position: relative;
   display: grid;
-  grid-template-rows: 1fr 1fr 1fr;
   grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr 1rem;
   grid-template-areas:
     'player1 enemy'
     'player2 enemy'
-    'player3 enemy';
+    'player3 enemy'
+    'gamebutton gamebutton';
   padding: 0.6rem 2rem;
 }
 
@@ -102,7 +221,7 @@ main > header {
 
 .playerUnit,
 .enemyUnit {
-  height: 130px;
+  height: 110px;
   margin: 0.5rem;
   border: 2px solid black;
   display: flex;
@@ -143,10 +262,6 @@ main > header {
   transition: all 0.5s ease-in-out;
 }
 
-/* .rollingArea > .playerDice {
-  position: absolute;
-} */
-
 .playerHighlight {
   border: 3px solid rgb(20, 41, 155);
   transition: all 0.5s ease-in-out;
@@ -161,6 +276,41 @@ main > header {
   border: 3px solid rgb(16, 158, 103);
 }
 
+#rollingArea > .game-buttons {
+  grid-area: gamebutton;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+footer {
+  grid-area: footer;
+  height: 5vh;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(127, 255, 212, 0.605);
+}
+
+#game-reset,
+#game-help {
+  position: absolute;
+  bottom: 0;
+  height: fit-content;
+  padding: 0.5rem;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.705);
+  align-self: flex-end;
+  margin: 1rem;
+}
+
+#game-reset {
+  right: 20vw;
+}
+
+#game-help {
+  left: 20vw;
+}
+
 #playerUnit0 {
   /* border: 3px solid rgb(199, 97, 162); */
   border: 3px solid var(--ashley);
@@ -168,4 +318,50 @@ main > header {
 
 #playerUnit1 {
   border: 3px solid var(--jevan);
+}
+
+#diceModal #dice-sides {
+  display: grid;
+  margin: auto;
+  height: 350px;
+  width: 450px;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-areas:
+    '. topSide . .'
+    'leftSide middleSide rightSide rightMostSide'
+    '. bottomSide . .';
+}
+
+#diceModal #dice-sides > div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid black;
+  height: 100px;
+  width: 100px;
+}
+
+#diceModal #dice-sides #topSide {
+  grid-area: topSide;
+}
+
+#diceModal #dice-sides #leftSide {
+  grid-area: leftSide;
+}
+
+#diceModal #dice-sides #middleSide {
+  grid-area: middleSide;
+}
+
+#diceModal #dice-sides #rightSide {
+  grid-area: rightSide;
+}
+
+#diceModal #dice-sides #rightMostSide {
+  grid-area: rightMostSide;
+}
+
+#diceModal #dice-sides #bottomSide {
+  grid-area: bottomSide;
 }

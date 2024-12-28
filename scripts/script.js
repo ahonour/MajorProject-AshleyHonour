@@ -1,11 +1,10 @@
 'use strict';
 
-//TODO: Fix the way enemy dice are locked to account for multiple enemies of the same type
-// Use map instead of array for units?
-// Or use id maybe
-
+// ---------------------------------------------Game Object---------------------------------------------
 const game = {
   title: 'Slice and Dice',
+  playerName: '',
+  difficulty: 'medium',
   isRunning: false,
   playerUnits: new Map(),
   alivePlayerUnits: [],
@@ -13,25 +12,111 @@ const game = {
   rewardsList: [],
   currentRewards: [],
   fightNumber: 0,
-  turnPhase: 'enemy',
+  turnPhase: 'playerRolling',
   rerollsLeft: 2,
   maxRerolls: 2,
   enemyHpModifier: 0,
   enemyDamageModifier: 0,
   activePlayerUnit: null,
   playerActions: null,
+  winstreak: 0,
   $DOM: $('#game'),
+  $playerName: $('#player-name'),
+  $winstreak: $('#winstreak'),
   $playerSection: $('#playerArea'),
   $rollingSection: $('#rollingArea'),
   $enemySection: $('#enemyArea'),
   $rewardsModal: $('#rewardsModal'),
+  $diceModal: $('#diceModal'),
+  $rerollButton: $('#reroll'),
+
+  async gameStart() {
+    game.playerName = landing.$playerName.val();
+    game.$playerName.text(game.playerName);
+    game.$winstreak.text(`Winstreak: ${game.winstreak}`);
+    game.difficulty = landing.difficultySelected;
+    game.isRunning = true;
+    game.playerUnits.clear();
+    game.alivePlayerUnits = [];
+    game.enemyUnits.clear();
+    game.rewardsList = [];
+    game.currentRewards = [];
+    game.fightNumber = 0;
+    game.turnPhase = 'playerRolling';
+    game.enemyHpModifier = 0;
+    game.enemyDamageModifier = 0;
+    game.activePlayerUnit = null;
+    game.playerActions = null;
+
+    // game.$rerollButton.prop('disabled', true);
+    game.difficultySetup();
+    game.rerollsLeft = game.maxRerolls;
+    // $(`#rollCounter`).text(`Rerolls left: ${game.rerollsLeft}`);
+    game.rewardSetup();
+    playerSetup();
+    game.nextFight();
+    // await game.enemyRolls();
+    // game.playerRolls();
+    game.$rerollButton.prop('disabled', false);
+  },
+
+  difficultySetup() {
+    switch (game.difficulty) {
+      case 'easy':
+        game.maxRerolls = 1;
+        break;
+      case 'medium':
+        game.maxRerolls = 2;
+        break;
+      case 'hard':
+        game.maxRerolls = 3;
+        break;
+      default:
+        game.maxRerolls = 2;
+        break;
+    }
+  },
+
+  rewardSetup() {
+    const healReward = new Reward(
+      'All healing sides +1',
+      Reward.prototype.modifyByType,
+      ['heal', 1]
+    );
+    const shieldReward = new Reward(
+      'All shield sides +1',
+      Reward.prototype.modifyByType,
+      ['shield', 1]
+    );
+    const rerollReward = new Reward(
+      'Reroll +1',
+      Reward.prototype.modifyRerolls,
+      1
+    );
+    const playerHealthReward = new Reward(
+      'Player max health +1',
+      Reward.prototype.modifyTotalHP,
+      ['player', 1]
+    );
+    const enemyHealthReward = new Reward(
+      'Enemy max health -1',
+      Reward.prototype.modifyTotalHP,
+      ['enemy', -1]
+    );
+    game.rewardsList.push(
+      healReward,
+      shieldReward,
+      rerollReward,
+      playerHealthReward,
+      enemyHealthReward
+    );
+  },
 
   addNewUnit(newUnit) {
     if (newUnit.ally) {
       const playerId = `player_${newUnit.name}_${this.playerUnits.size}`;
       this.playerUnits.set(playerId, newUnit);
       this.alivePlayerUnits.push(newUnit);
-      // this.alivePlayerUnits.set(playerId, newUnit);
       const playerNum = this.playerUnits.size - 1;
       const playerName = `<div class="unitName">${newUnit.name}</div>`;
       const playerHP = `<div class="unitHP ${newUnit.name}">Health: ${newUnit.currentHP}/${newUnit.totalHP}</div>`;
@@ -42,7 +127,7 @@ const game = {
       const newUnitTotal = `<div class="playerUnit ${newUnit.name}" id='${playerId}'>${playerInfo}${playerDice}${diceInfo}</div>`;
       this.$playerSection.append(newUnitTotal);
       newUnit.id = playerId;
-      this.createRollingDice(newUnit);
+      // this.createRollingDice(newUnit);
     } else {
       const enemyId = `enemy_${newUnit.name}_${this.enemyUnits.size}`;
       this.enemyUnits.set(enemyId, newUnit);
@@ -55,7 +140,7 @@ const game = {
       const newUnitTotal = `<div class="enemyUnit" id='${enemyId}'>${enemyInfo}${enemyDice}${diceInfo}</div>`;
       this.$enemySection.append(newUnitTotal);
       newUnit.id = enemyId;
-      this.createRollingDice(newUnit);
+      // this.createRollingDice(newUnit);
     }
   },
 
@@ -111,15 +196,8 @@ const game = {
     for (const unitMap of game.playerUnits) {
       const unit = unitMap[1];
       const $rollingDice = game.$rollingSection.find(`#${unitMap[0]}`);
-      await diceAnimate(unit, $rollingDice);
+      diceAnimate(unit, $rollingDice);
     }
-    // const playerUnits = Array.from(game.playerUnits.values());
-    // for (const unit of playerUnits) {
-    //   if (!unit.dice.isLocked) {
-    //     const $rollingDice = game.$rollingSection.find(`.${unit.name}`);
-    //     await diceAnimate(unit, $rollingDice);
-    //   }
-    // }
   },
 
   async nextTurn() {
@@ -130,8 +208,8 @@ const game = {
     game.enemyUnits.forEach((unit) => {
       game.createRollingDice(unit);
     });
-    game.enemyRolls();
-    await sleep(2000);
+    await game.enemyRolls();
+    await sleep(500);
     //const alivePlayerUnits = game.playerUnits.filter((unit) => unit.alive);
     game.alivePlayerUnits.forEach((unit) => {
       game.createRollingDice(unit);
@@ -173,18 +251,12 @@ const game = {
     game.turnPhase = 'playerAction';
     game.playerActions = game.alivePlayerUnits.length;
     game.playerDicePrompt();
-    // alivePlayerUnits.forEach(unit => {
-    //   game.$playerSection.find(`.playerDice.${unit.name}`).addClass('dicePrompt');
-    // });
   },
 
   playerDicePrompt() {
     const remainingUnits = game.alivePlayerUnits.filter(
       (unit) => unit.dice.isLocked
     );
-    // let alivePlayerUnits = game.playerUnits.filter((unit) => unit.alive);
-    // alivePlayerUnits = alivePlayerUnits.filter((unit) => unit.isLocked);
-    // console.log(`locked units are ${alivePlayerUnits}`);
     remainingUnits.forEach((unit) => {
       game.$playerSection
         .find(`.playerDice.${unit.name}`)
@@ -237,7 +309,6 @@ const game = {
     game.playerActions--;
     if (game.playerActions === 0) {
       console.log('player out of actions, it is now the enemy turn');
-      // prompt user somehow
       game.$DOM.find('#endTurn').addClass('dicePrompt');
       game.turnPhase = 'enemyAttack';
       return;
@@ -246,8 +317,6 @@ const game = {
 
   attackEnemyUnit(unitId) {
     const targetUnit = game.enemyUnits.get(`${unitId}`);
-    // const targetUnit = game.enemyUnits.get(unitId);
-
     const diceValue = game.activePlayerUnit.dice.currentSide.value;
     targetUnit.currentHP -= diceValue;
     targetUnit.updateHP();
@@ -264,7 +333,7 @@ const game = {
     game.turnPhase = 'playerAction';
 
     game.playerActions--;
-    if (game.enemyUnits.length === 0) {
+    if (game.enemyUnits.size === 0) {
       console.log('All enemies dead, you won!!!!! :3 ');
       game.turnPhase = 'fightOver';
       game.fightOver();
@@ -278,7 +347,25 @@ const game = {
   },
 
   fightOver() {
+    const playerDice = game.$playerSection.find('.playerDice');
+    playerDice.empty();
+    playerDice.removeClass('dicePrompt');
+    game.activePlayerUnit = null;
+    game.playerActions = 0;
+    game.$DOM.find('#endTurn').removeClass('dicePrompt');
+    game.alivePlayerUnits = [];
+    for (const unit of game.playerUnits.values()) {
+      unit.fullHeal();
+      unit.alive = true;
+      unit.dice.isLocked = false;
+      game.alivePlayerUnits.push(unit);
+    }
+
     game.generateRewards();
+    game.$rewardsModal.modal({
+      backdrop: 'static',
+      keyboard: false,
+    });
     game.$rewardsModal.modal('show');
   },
 
@@ -302,6 +389,7 @@ const game = {
 
   nextFight() {
     game.fightNumber++;
+
     switch (game.fightNumber) {
       case 1:
         game.fightOne();
@@ -312,6 +400,7 @@ const game = {
       default:
         break;
     }
+    game.nextTurn();
   },
 
   fightOne() {
@@ -336,9 +425,120 @@ const game = {
     generateGoblin();
     generateGoblin();
   },
+
+  // fightThree() {}
+
+  gameover() {
+    game.isRunning = false;
+    game.$playerSection.empty();
+    game.$enemySection.empty();
+    game.$rollingSection.empty();
+    game.winstreak = 0;
+    game.$DOM.css('display', 'none');
+    gameover.$DOM.css('display', 'flex');
+  },
 };
 
-// ---------------------------------------------Classes---------------------------------------------
+// ---------------------------------------------Landing Screen Object---------------------------------------------
+const landing = {
+  $DOM: $('#landing'),
+  $startForm: $('#startForm'),
+  $startButton: $('#startGame'),
+  $playerName: $('#playerName'),
+  $easyButton: $('#easy'),
+  $mediumButton: $('#medium'),
+  $hardButton: $('#hard'),
+  $helpButton: $('#helpButton'),
+  $difficultyExplanation: $('#difficultyExplanation'),
+  difficultySelected: '',
+
+  gameSetup() {
+    console.log('setting up landing screen');
+    if (this.$playerName.val() === '') {
+      return;
+    } else {
+      game.playerName = this.$playerName.val();
+      this.$DOM.css('display', 'none');
+      game.$DOM.css('display', 'grid');
+      game.isRunning = true;
+      game.gameStart();
+    }
+  },
+
+  setEasy() {
+    this.difficultySelected = 'easy';
+    this.$difficultyExplanation.text('Easy: 1 reroll');
+  },
+
+  setMedium() {
+    this.difficultySelected = 'medium';
+    this.$difficultyExplanation.text('Medium: 2 rerolls');
+  },
+
+  setHard() {
+    this.difficultySelected = 'hard';
+    this.$difficultyExplanation.text('Hard: 3 rerolls');
+  },
+};
+
+// ---------------------------------------------Landing Screen Click---------------------------------------------
+landing.$startButton.on('click', () => {
+  landing.gameSetup();
+});
+
+landing.$easyButton.on('click', () => {
+  landing.setEasy();
+});
+
+landing.$mediumButton.on('click', () => {
+  landing.setMedium();
+});
+
+landing.$hardButton.on('click', () => {
+  landing.setHard();
+});
+
+landing.$startForm.on('submit', (event) => {
+  event.preventDefault();
+});
+
+landing.$helpButton.on('click', () => {
+  landing.$DOM.css('display', 'none');
+  help.$DOM.css('display', 'flex');
+});
+
+// ---------------------------------------------Help Screen Object---------------------------------------------
+
+const help = {
+  $DOM: $('#help'),
+  $return: $('#help-return'),
+};
+
+// ---------------------------------------------Help Screen Click---------------------------------------------
+
+help.$return.on('click', () => {
+  if (game.isRunning) {
+    help.$DOM.css('display', 'none');
+    game.$DOM.css('display', 'grid');
+  } else {
+    help.$DOM.css('display', 'none');
+    landing.$DOM.css('display', 'block');
+  }
+});
+
+// ---------------------------------------------Game Over Screen Object---------------------------------------------
+const gameover = {
+  $DOM: $('#gameover'),
+  $restart: $('#restart'),
+};
+
+// ---------------------------------------------Game Over Screen Click---------------------------------------------
+gameover.$restart.on('click', () => {
+  gameover.$DOM.css('display', 'none');
+  landing.$DOM.css('display', 'block');
+});
+
+// ---------------------------------------------Unit Classes---------------------------------------------
 class PlayerUnit {
   constructor(name, health, dice) {
     this.name = name;
@@ -387,6 +587,29 @@ class PlayerUnit {
     this.currentHP = this.totalHP;
     this.updateHP();
   }
+
+  displayDice() {
+    const $diceModal = game.$diceModal;
+    $diceModal.find('.modal-title').text(`${this.name} Dice Info`);
+    $diceModal
+      .find('#topSide')
+      .text(`${this.dice.top.value} ${this.dice.top.type}`);
+    $diceModal
+      .find('#leftSide')
+      .text(`${this.dice.left.value} ${this.dice.left.type}`);
+    $diceModal
+      .find('#middleSide')
+      .text(`${this.dice.middle.value} ${this.dice.middle.type}`);
+    $diceModal
+      .find('#bottomSide')
+      .text(`${this.dice.bottom.value} ${this.dice.bottom.type}`);
+    $diceModal
+      .find('#rightSide')
+      .text(`${this.dice.right.value} ${this.dice.right.type}`);
+    $diceModal
+      .find('#rightMostSide')
+      .text(`${this.dice.farRight.value} ${this.dice.farRight.type}`);
+  }
 }
 
 class EnemyUnit {
@@ -429,18 +652,35 @@ class EnemyUnit {
     const $hp = game.$enemySection.find(`#${unitId}`).find('.unitHP');
     if (this.currentHP <= 0) {
       $hp.text(`Dead :'(`);
-
-      // game.$enemySection.find(`#${this.name}`).remove();
-      // game.enemyUnits.splice(
-      //   game.enemyUnits.findIndex((n) => n.name === this.name),
-      //   1
-      // );
       const unitId = this.id;
       game.enemyUnits.delete(unitId);
       game.$enemySection.find(`#${unitId}`).remove();
     } else {
       $hp.text(`Health: ${this.currentHP}/${this.totalHP}`);
     }
+  }
+
+  displayDice() {
+    const $diceModal = game.$diceModal;
+    $diceModal.find('.modal-title').text(`${this.name} Dice Info`);
+    $diceModal
+      .find('#topSide')
+      .text(`${this.dice.top.value} ${this.dice.top.type}`);
+    $diceModal
+      .find('#leftSide')
+      .text(`${this.dice.left.value} ${this.dice.left.type}`);
+    $diceModal
+      .find('#middleSide')
+      .text(`${this.dice.middle.value} ${this.dice.middle.type}`);
+    $diceModal
+      .find('#bottomSide')
+      .text(`${this.dice.bottom.value} ${this.dice.bottom.type}`);
+    $diceModal
+      .find('#rightSide')
+      .text(`${this.dice.right.value} ${this.dice.right.type}`);
+    $diceModal
+      .find('#rightMostSide')
+      .text(`${this.dice.farRight.value} ${this.dice.farRight.type}`);
   }
 }
 
@@ -498,41 +738,6 @@ class DiceSide {
 // General Rewards: +1 All healing sides, +1 All shield sides, +1 specific side, +1 reroll, +max health, -enemy max health
 // Unit specific rewards: +1 all damage sides
 
-function RewardSetup() {
-  const healReward = new Reward(
-    'All healing sides +1',
-    Reward.prototype.modifyByType,
-    ['heal', 1]
-  );
-  const shieldReward = new Reward(
-    'All shield sides +1',
-    Reward.prototype.modifyByType,
-    ['shield', 1]
-  );
-  const rerollReward = new Reward(
-    'Reroll +1',
-    Reward.prototype.modifyRerolls,
-    1
-  );
-  const playerHealthReward = new Reward(
-    'Player max health +1',
-    Reward.prototype.modifyTotalHP,
-    ['player', 1]
-  );
-  const enemyHealthReward = new Reward(
-    'Enemy max health -1',
-    Reward.prototype.modifyTotalHP,
-    ['enemy', -1]
-  );
-  game.rewardsList.push(
-    healReward,
-    shieldReward,
-    rerollReward,
-    playerHealthReward,
-    enemyHealthReward
-  );
-}
-
 class Reward {
   constructor(text, method, parameters) {
     this.text = text;
@@ -586,7 +791,25 @@ game.$rewardsModal.on('click', '.reward', (event) => {
   const reward = game.currentRewards[rewardNum];
   reward.applyEffect();
   console.log(`clicked on reward ${rewardNum + 1}`);
+  game.$rewardsModal.modal('hide');
   game.nextFight();
+});
+
+game.$DOM.on('click', '.diceInfo', (event) => {
+  const $clickedElement = $(event.target);
+  const isPlayer =
+    $clickedElement.closest('section').attr('id') === 'playerArea';
+  if (isPlayer) {
+    const unitId = $clickedElement.closest('.playerUnit').attr('id');
+    const unit = game.playerUnits.get(`${unitId}`);
+    unit.displayDice();
+  } else {
+    const unitId = $clickedElement.closest('.enemyUnit').attr('id');
+    const unit = game.enemyUnits.get(`${unitId}`);
+    unit.displayDice();
+  }
+
+  game.$diceModal.modal('show');
 });
 
 // ---------------------------------------------Game Area click---------------------------------------------
@@ -594,7 +817,6 @@ game.$playerSection.on('click', '.playerDice', (event) => {
   const $clickedElement = $(event.target);
   const unitId = $clickedElement.closest('.playerUnit').attr('id');
   const playerUnit = game.playerUnits.get(`${unitId}`);
-  console.log(playerUnit);
 
   if (game.turnPhase === 'playerAction') {
     if (playerUnit.dice.currentSide != null) {
@@ -611,7 +833,6 @@ game.$rollingSection.on('click', '.playerDice', (event) => {
   const playerMap = [...game.playerUnits.entries()].find(
     ([key, value]) => key === unitName
   );
-  console.log(unitName);
   const playerUnit = playerMap[1];
   if (game.turnPhase === 'playerRolling') {
     if (!playerUnit.dice.isLocked) {
@@ -630,6 +851,15 @@ game.$enemySection.on('click', '.enemyUnit', (event) => {
   if (game.turnPhase === 'playerAttacking') {
     game.attackEnemyUnit(unitId);
   }
+});
+
+$('#game-help').on('click', () => {
+  game.$DOM.css('display', 'none');
+  help.$DOM.css('display', 'flex');
+});
+
+$('#game-reset').on('click', () => {
+  game.gameover();
 });
 
 // ---------------------------------------------Reroll Button---------------------------------------------
@@ -671,16 +901,6 @@ async function diceAnimate($unit, $clickedElement) {
   }
 }
 
-function randomSpot($dice) {
-  const rollingHeight = Math.floor(
-    Math.random() * game.$rollingSection.height() - $dice.height()
-  );
-  const rollingWidth =
-    Math.floor(Math.random() * game.$rollingSection.width()) - $dice.width();
-  $dice.css('top', `${rollingHeight}px`);
-  $dice.css('left', `${rollingWidth}px`);
-}
-
 // ---------------------------------------------Set up units---------------------------------------------
 function playerSetup() {
   const p1Top = new DiceSide(2, 'damage');
@@ -720,50 +940,13 @@ function playerSetup() {
   const p3 = new PlayerUnit('Podenco', 2, p3Dice);
 }
 
-function enemySetup() {
-  const p1Top = new DiceSide(2, 'damage');
-  const p1Middle = new DiceSide(1, 'shield');
-  const p1Left = new DiceSide(4, 'damage');
-  const p1Right = new DiceSide(3, 'damage');
-  const p1Bottom = new DiceSide(5, 'damage');
-  const p1farRight = new DiceSide(6, 'damage');
-
-  const e1Dice = new Dice(
-    p1Top,
-    p1Left,
-    p1Middle,
-    p1Bottom,
-    p1Right,
-    p1farRight
-  );
-  const e2Dice = new Dice(
-    p1Top,
-    p1Left,
-    p1Middle,
-    p1Bottom,
-    p1Right,
-    p1farRight
-  );
-  const e3Dice = new Dice(
-    p1Top,
-    p1Left,
-    p1Middle,
-    p1Bottom,
-    p1Right,
-    p1farRight
-  );
-  const p1 = new EnemyUnit('bee1', 10 + game.enemyHpModifier, e1Dice);
-  const p2 = new EnemyUnit('bee2', 4 + game.enemyHpModifier, e2Dice);
-  const p3 = new EnemyUnit('bee3', 2 + game.enemyHpModifier, e3Dice);
-}
-
 function generateGoblin() {
   const gobTop = new DiceSide(4 + game.enemyDamageModifier, 'damage');
   const gobLeft = new DiceSide(4 + game.enemyDamageModifier, 'damage');
   const gobMiddle = new DiceSide(2 + game.enemyDamageModifier, 'damage');
   const gobBottom = new DiceSide(2 + game.enemyDamageModifier, 'damage');
   const gobRight = new DiceSide(1 + game.enemyDamageModifier, 'damage');
-  const egobRightMost = new DiceSide(1 + game.enemyDamageModifier, 'damage');
+  const gobRightMost = new DiceSide(1 + game.enemyDamageModifier, 'damage');
 
   const gobDice = new Dice(
     gobTop,
@@ -771,7 +954,7 @@ function generateGoblin() {
     gobMiddle,
     gobBottom,
     gobRight,
-    egobRightMost
+    gobRightMost
   );
   const gob = new EnemyUnit('Goblin', 8 + game.enemyHpModifier, gobDice);
 }
@@ -797,18 +980,5 @@ function generateBee() {
 
 // ---------------------------------------------Game Start-----------------------------------------------
 $(document).ready(async () => {
-  const $rerollButton = $('#reroll');
-  $rerollButton.prop('disabled', true);
-  RewardSetup();
-  console.log('enemy rolls');
-  playerSetup();
-  game.nextFight();
-  // enemySetup();
-  console.log('rerolling');
-  game.enemyRolls();
-  await sleep(1000);
-  console.log('player rolls');
-  game.playerRolls();
-  $rerollButton.prop('disabled', false);
-  game.turnPhase = 'playerRolling';
+  landing.$DOM.css('display', 'block');
 });
