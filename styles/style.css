@@ -221,7 +221,7 @@ main > #game-header {
 
 .playerUnit,
 .enemyUnit {
-  height: 130px;
+  height: 110px;
   margin: 0.5rem;
   border: 2px solid black;
   display: flex;

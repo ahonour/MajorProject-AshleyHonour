@@ -21,7 +21,8 @@ const game = {
   playerActions: null,
   winstreak: 0,
   $DOM: $('#game'),
-  $header: $('#game-header'),
+  $playerName: $('#player-name'),
+  $winstreak: $('#winstreak'),
   $playerSection: $('#playerArea'),
   $rollingSection: $('#rollingArea'),
   $enemySection: $('#enemyArea'),
@@ -29,9 +30,11 @@ const game = {
   $rerollButton: $('#reroll'),
 
   gameStart() {
-    game.playername = landing.$playerName.val();
-    game.difficulty = landing.$difficultySelected;
-    game.isRunning = false;
+    game.playerName = landing.$playerName.val();
+    game.$playerName.text(game.playerName);
+    game.$winstreak.text(`Winstreak: ${game.winstreak}`);
+    game.difficulty = landing.difficultySelected;
+    game.isRunning = true;
     game.playerUnits.clear();
     game.alivePlayerUnits = [];
     game.enemyUnits.clear();
@@ -39,20 +42,38 @@ const game = {
     game.currentRewards = [];
     game.fightNumber = 0;
     game.turnPhase = 'playerRolling';
-    game.rerollsLeft = 2;
-    game.maxRerolls = 2;
     game.enemyHpModifier = 0;
     game.enemyDamageModifier = 0;
     game.activePlayerUnit = null;
     game.playerActions = null;
 
     game.$rerollButton.prop('disabled', true);
+    game.difficultySetup();
+    game.rerollsLeft = game.maxRerolls;
+    $(`#rollCounter`).text(`Rerolls left: ${game.rerollsLeft}`);
     game.rewardSetup();
     playerSetup();
     game.nextFight();
     game.enemyRolls();
     game.playerRolls();
     game.$rerollButton.prop('disabled', false);
+  },
+
+  difficultySetup() {
+    switch (game.difficulty) {
+      case 'easy':
+        game.maxRerolls = 1;
+        break;
+      case 'medium':
+        game.maxRerolls = 2;
+        break;
+      case 'hard':
+        game.maxRerolls = 3;
+        break;
+      default:
+        game.maxRerolls = 2;
+        break;
+    }
   },
 
   rewardSetup() {
@@ -395,6 +416,7 @@ const game = {
     game.$playerSection.empty();
     game.$enemySection.empty();
     game.$rollingSection.empty();
+    game.winstreak = 0;
     game.$DOM.css('display', 'none');
     gameover.$DOM.css('display', 'flex');
   },
@@ -411,7 +433,7 @@ const landing = {
   $hardButton: $('#hard'),
   $helpButton: $('#helpButton'),
   $difficultyExplanation: $('#difficultyExplanation'),
-  $difficultySelected: '',
+  difficultySelected: '',
 
   gameSetup() {
     console.log('setting up landing screen');
@@ -427,17 +449,17 @@ const landing = {
   },
 
   setEasy() {
-    this.$difficultySelected = 'easy';
+    this.difficultySelected = 'easy';
     this.$difficultyExplanation.text('Easy: 1 reroll');
   },
 
   setMedium() {
-    this.$difficultySelected = 'medium';
+    this.difficultySelected = 'medium';
     this.$difficultyExplanation.text('Medium: 2 rerolls');
   },
 
   setHard() {
-    this.$difficultySelected = 'hard';
+    this.difficultySelected = 'hard';
     this.$difficultyExplanation.text('Hard: 3 rerolls');
   },
 };
@@ -749,6 +771,15 @@ game.$enemySection.on('click', '.enemyUnit', (event) => {
   if (game.turnPhase === 'playerAttacking') {
     game.attackEnemyUnit(unitId);
   }
+});
+
+$('#game-help').on('click', () => {
+  game.$DOM.css('display', 'none');
+  help.$DOM.css('display', 'flex');
+});
+
+$('#game-reset').on('click', () => {
+  game.gameover();
 });
 
 // ---------------------------------------------Reroll Button---------------------------------------------
