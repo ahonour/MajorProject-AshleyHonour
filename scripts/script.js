@@ -32,9 +32,20 @@ const game = {
   $userPrompt: $('#user-prompt'),
 
   async gameStart() {
+    game.gameReset();
+
+    game.rewardSetup();
+    game.playerSetup();
+    game.$rerollButton.text(`Reroll (${game.rerollsLeft})`);
+    game.nextFight();
+  },
+
+  gameReset() {
     game.playerName = landing.$playerName.val();
     game.$playerName.text(game.playerName);
     game.$winstreak.text(`Winstreak: ${game.winstreak}`);
+    game.$playerSection.empty();
+    game.$enemySection.empty();
     game.difficulty = landing.difficultySelected;
     game.isRunning = true;
     game.playerUnits.clear();
@@ -48,23 +59,18 @@ const game = {
     game.enemyDamageModifier = 0;
     game.activePlayerUnit = null;
     game.playerActions = null;
-
     game.difficultySetup();
     game.rerollsLeft = game.maxRerolls;
-    game.rewardSetup();
-    game.playerSetup();
-    game.$rerollButton.text(`Reroll (${game.rerollsLeft})`);
-    game.nextFight();
   },
 
   playerSetup() {
     const damageUnit = Math.floor(Math.random() * 3);
-    const healUnit = Math.floor(Math.random() * 3);
     const shieldUnit = Math.floor(Math.random() * 3);
+    const healUnit = Math.floor(Math.random() * 3);
 
     game.generateAttacker(damageUnit);
-    game.generateHealer(healUnit);
     game.generateDefender(shieldUnit);
+    game.generateHealer(healUnit);
 
     // const p1Top = new DiceSide(2, 'damage');
     // const p1Middle = new DiceSide(1, 'shield');
@@ -589,7 +595,10 @@ const game = {
       game.alivePlayerUnits.push(unit);
     }
     if (game.fightNumber === 3) {
+      game.isRunning = false;
       game.winstreak++;
+      game.$DOM.css('display', 'none');
+      winner.$DOM.css('display', 'flex');
     } else {
       game.generateRewards();
       game.$rewardsModal.modal({
@@ -628,6 +637,9 @@ const game = {
       case 2:
         game.fightTwo();
         break;
+      case 3:
+        game.fightThree();
+        break;
       default:
         break;
     }
@@ -657,7 +669,11 @@ const game = {
     generateGoblin();
   },
 
-  // fightThree() {}
+  fightThree() {
+    generateGoblin();
+    generateGoblin();
+    generateBee();
+  },
 
   gameover() {
     game.isRunning = false;
@@ -777,6 +793,19 @@ const winner = {
   $continue: $('#continue'),
   $finished: $('#finished'),
 };
+
+// ---------------------------------------------Winner Screen Click---------------------------------------------
+winner.$continue.on('click', () => {
+  winner.$DOM.css('display', 'none');
+  game.$DOM.css('display', 'grid');
+  game.gameStart();
+});
+
+winner.$finished.on('click', () => {
+  winner.$DOM.css('display', 'none');
+  landing.$DOM.css('display', 'flex');
+  game.winstreak = 0;
+});
 
 // ---------------------------------------------Unit Classes---------------------------------------------
 class PlayerUnit {
