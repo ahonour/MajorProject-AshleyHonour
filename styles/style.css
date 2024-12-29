@@ -1,6 +1,6 @@
 :root {
   --ashley: rgba(199, 97, 161, 0.4);
-  --jevan: rgba(82, 14, 14, 0.4);
+  --jevan: rgba(25, 34, 132, 0.4);
   --podenco: rgba(146, 136, 46, 0.4);
 }
 
@@ -28,6 +28,13 @@ body {
   flex-direction: column;
   min-height: 100vh;
   min-width: 900px;
+  background: rgb(64, 213, 190);
+  background: linear-gradient(
+    128deg,
+    rgba(64, 213, 190, 1) 12%,
+    rgba(255, 94, 232, 1) 51%,
+    rgba(150, 171, 127, 1) 89%
+  );
 }
 
 #landing {
@@ -83,13 +90,13 @@ body {
     'header header header'
     'playerArea diceArea enemyArea'
     'footer footer footer';
-  background: rgb(64, 213, 190);
+  /* background: rgb(64, 213, 190);
   background: linear-gradient(
     128deg,
     rgba(64, 213, 190, 1) 12%,
     rgba(255, 94, 232, 1) 51%,
     rgba(150, 171, 127, 1) 89%
-  );
+  ); */
 }
 
 #help {
@@ -158,6 +165,11 @@ main > #game-header {
   justify-content: space-between;
 }
 
+#player-info,
+#user-prompt {
+  box-shadow: 4px 4px 3px 2px rgba(0, 0, 0, 0.5);
+}
+
 #player-info {
   text-align: left;
   margin-top: 1rem;
@@ -174,13 +186,15 @@ main > #game-header {
   left: 50%;
   transform: translateX(-50%);
   width: 30vw;
-  height: 100px;
+  height: 120px;
   background-color: rgba(209, 57, 138, 0.587);
   border-radius: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
+  font-size: 1.2rem;
+  font-weight: 550;
   transition: all 1.5s ease-in-out;
 }
 
@@ -281,11 +295,15 @@ main > #game-header {
   padding: 0.2rem;
   border-radius: 15px;
   align-items: center;
-  background-color: rgba(243, 198, 76, 0.539);
 }
 
 .enemyUnit {
-  height: fit-content;
+  height: 95px;
+  background-color: rgba(199, 134, 21, 0.507);
+}
+
+.playerUnit {
+  background-color: rgba(243, 198, 76, 0.539);
 }
 
 .unitInfo {
@@ -300,10 +318,12 @@ main > #game-header {
 
 .unitHP {
   color: rgba(237, 22, 90, 0.849);
+  text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.7);
 }
 
 .unitShield {
   color: rgba(0, 106, 255, 0.776);
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 .diceInfo {
@@ -325,22 +345,24 @@ main > #game-header {
 
 .playerDice,
 .enemyDice {
-  height: 90px;
-  width: 90px;
+  height: 75px;
+  width: 75px;
   padding: 0.1rem;
   border: 2px solid black;
-  margin-right: 3px;
+  margin-right: 10px;
   transition: all 0.5s ease-in-out;
   display: flex;
   justify-content: center;
   align-items: center;
+  font-size: 1.1rem;
+  font-weight: 500;
+  box-shadow: 2px 2px 1px 0 rgba(0, 0, 0, 0.3);
   /* background-color: rgba(245, 245, 245, 0.509); */
 }
 
 .playerHighlight {
-  border: 3px solid rgb(20, 41, 155);
+  border: 3px solid rgb(20, 41, 155) !important;
   transition: all 0.5s ease-in-out;
-  transform: translateX(10px);
 }
 
 .enemyHighlight {
@@ -451,12 +473,15 @@ footer {
 
 .playerDice.Ashley {
   background-color: var(--ashley);
+  grid-area: player1;
 }
 
 .playerDice.Jevan {
   background-color: var(--jevan);
+  grid-area: player2;
 }
 
 .playerDice.Podenco {
   background-color: var(--podenco);
+  grid-area: player3;
 }
