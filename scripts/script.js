@@ -29,6 +29,7 @@ const game = {
   $rewardsModal: $('#rewardsModal'),
   $diceModal: $('#diceModal'),
   $rerollButton: $('#reroll'),
+  $userPrompt: $('#user-prompt'),
 
   async gameStart() {
     game.playerName = landing.$playerName.val();
@@ -48,28 +49,24 @@ const game = {
     game.activePlayerUnit = null;
     game.playerActions = null;
 
-    // game.$rerollButton.prop('disabled', true);
     game.difficultySetup();
     game.rerollsLeft = game.maxRerolls;
-    // $(`#rollCounter`).text(`Rerolls left: ${game.rerollsLeft}`);
     game.rewardSetup();
     playerSetup();
+    game.$rerollButton.text(`Reroll (${game.rerollsLeft})`);
     game.nextFight();
-    // await game.enemyRolls();
-    // game.playerRolls();
-    game.$rerollButton.prop('disabled', false);
   },
 
   difficultySetup() {
     switch (game.difficulty) {
       case 'easy':
-        game.maxRerolls = 1;
+        game.maxRerolls = 3;
         break;
       case 'medium':
         game.maxRerolls = 2;
         break;
       case 'hard':
-        game.maxRerolls = 3;
+        game.maxRerolls = 1;
         break;
       default:
         game.maxRerolls = 2;
@@ -119,8 +116,8 @@ const game = {
       this.alivePlayerUnits.push(newUnit);
       const playerNum = this.playerUnits.size - 1;
       const playerName = `<div class="unitName">${newUnit.name}</div>`;
-      const playerHP = `<div class="unitHP ${newUnit.name}">Health: ${newUnit.currentHP}/${newUnit.totalHP}</div>`;
-      const playerShield = `<div class="unitShield ${newUnit.name}">Shield: 0</div>`;
+      const playerHP = `<div class="unitHP ${newUnit.name}">💖 ${newUnit.currentHP}/${newUnit.totalHP}</div>`;
+      const playerShield = `<div class="unitShield ${newUnit.name}">🛡️ 0</div>`;
       const playerInfo = `<div class="unitInfo">${playerName}${playerHP}${playerShield}</div>`;
       const playerDice = `<div class="playerDice ${newUnit.name}" id='playerDice${playerNum}'></div>`;
       const diceInfo = `<button class= "diceInfo ${newUnit.name}">?</button>`;
@@ -132,7 +129,7 @@ const game = {
       const enemyId = `enemy_${newUnit.name}_${this.enemyUnits.size}`;
       this.enemyUnits.set(enemyId, newUnit);
       const enemyName = `<div class="unitName">${newUnit.name}</div>`;
-      const enemyHP = `<div class="unitHP ${newUnit.name}">Health: ${newUnit.currentHP}/${newUnit.totalHP}</div>`;
+      const enemyHP = `<div class="unitHP ${newUnit.name}">💖 ${newUnit.currentHP}/${newUnit.totalHP}</div>`;
       const target = `<div class="targeting ${newUnit.name}">Targeting: </div>`;
       const enemyInfo = `<div class="unitInfo">${enemyName}${enemyHP}${target}</div>`;
       const enemyDice = `<div class="enemyDice ${newUnit.name}" id='enemyDice${enemyId}'></div>`;
@@ -201,6 +198,7 @@ const game = {
   },
 
   async nextTurn() {
+    game.$rerollButton.prop('disabled', true);
     game.alivePlayerUnits.forEach((unit) => {
       unit.shield = 0;
       unit.updateShield();
@@ -214,11 +212,14 @@ const game = {
     game.alivePlayerUnits.forEach((unit) => {
       game.createRollingDice(unit);
     });
-    game.playerRolls();
+    await game.playerRolls();
     game.rerollsLeft = game.maxRerolls;
-    $(`#rollCounter`).text(`Rerolls left: ${game.rerollsLeft}`);
-    game.$DOM.find('#reroll').prop('disabled', false);
+    game.$rerollButton.text(`Reroll (${game.rerollsLeft})`);
+    game.$rerollButton.prop('disabled', false);
     game.turnPhase = 'playerRolling';
+    game.$userPrompt.text(
+      'Roll your dice and click on them to lock your selection'
+    );
   },
 
   enemyAttack() {
@@ -237,6 +238,7 @@ const game = {
       target.currentHP -= totalDamage;
       target.updateHP();
       target.updateShield();
+      game.$enemySection.find(`#${unit.id}`).find('.enemyDice').empty();
     });
     if (game.alivePlayerUnits.length === 0) {
       console.log('All your units are dead, Game over :( ');
@@ -247,7 +249,6 @@ const game = {
 
   playerEndRolls() {
     console.log('all units locked moving to action phase');
-    //const alivePlayerUnits = game.playerUnits.filter((unit) => unit.alive);
     game.turnPhase = 'playerAction';
     game.playerActions = game.alivePlayerUnits.length;
     game.playerDicePrompt();
@@ -262,6 +263,7 @@ const game = {
         .find(`.playerDice.${unit.name}`)
         .addClass('dicePrompt');
     });
+    game.$userPrompt.text('Click on one of your dice to select it');
   },
 
   usePlayerDice(playerId) {
@@ -272,6 +274,7 @@ const game = {
     if (playerUnit.dice.currentSide.type === 'damage') {
       console.log('click on an enemy unit to attack them');
       game.$enemySection.find('.enemyUnit').addClass('enemyHighlight');
+      game.$userPrompt.text('Click on an enemy unit to attack them');
       game.turnPhase = 'playerAttacking';
     } else {
       console.log('click on an allied unit to aid them');
@@ -280,6 +283,7 @@ const game = {
           .find(`.playerDice.${unit.name}`)
           .addClass('playerHighlight');
       });
+      game.$userPrompt.text('Click on an allied unit to aid them');
       game.turnPhase = 'playerDefending';
     }
     game.activePlayerUnit = playerUnit;
@@ -309,6 +313,7 @@ const game = {
     game.playerActions--;
     if (game.playerActions === 0) {
       console.log('player out of actions, it is now the enemy turn');
+      game.$userPrompt.text('Click on the end turn button to proceed');
       game.$DOM.find('#endTurn').addClass('dicePrompt');
       game.turnPhase = 'enemyAttack';
       return;
@@ -360,13 +365,16 @@ const game = {
       unit.dice.isLocked = false;
       game.alivePlayerUnits.push(unit);
     }
-
-    game.generateRewards();
-    game.$rewardsModal.modal({
-      backdrop: 'static',
-      keyboard: false,
-    });
-    game.$rewardsModal.modal('show');
+    if (game.fightNumber === 3) {
+      game.winstreak++;
+    } else {
+      game.generateRewards();
+      game.$rewardsModal.modal({
+        backdrop: 'static',
+        keyboard: false,
+      });
+      game.$rewardsModal.modal('show');
+    }
   },
 
   generateRewards() {
@@ -467,17 +475,17 @@ const landing = {
 
   setEasy() {
     this.difficultySelected = 'easy';
-    this.$difficultyExplanation.text('Easy: 1 reroll');
+    this.$difficultyExplanation.text('Easy: 3 rerolls');
   },
 
   setMedium() {
     this.difficultySelected = 'medium';
-    this.$difficultyExplanation.text('Medium: 2 rerolls');
+    this.$difficultyExplanation.text('Medium: 2 reroll');
   },
 
   setHard() {
     this.difficultySelected = 'hard';
-    this.$difficultyExplanation.text('Hard: 3 rerolls');
+    this.$difficultyExplanation.text('Hard: 1 reroll');
   },
 };
 
@@ -538,6 +546,14 @@ gameover.$restart.on('click', () => {
   landing.$DOM.css('display', 'block');
 });
 
+// ---------------------------------------------Winner Screen Object---------------------------------------------
+
+const winner = {
+  $DOM: $('#winner'),
+  $continue: $('#continue'),
+  $finished: $('#finished'),
+};
+
 // ---------------------------------------------Unit Classes---------------------------------------------
 class PlayerUnit {
   constructor(name, health, dice) {
@@ -557,9 +573,7 @@ class PlayerUnit {
   }
 
   showCurrentSide($unitDice) {
-    $unitDice.text(
-      `${this.dice.currentSide.value} ${this.dice.currentSide.type}`
-    );
+    $unitDice.text(this.dice.displaySide(this.dice.currentSide));
   }
 
   updateHP() {
@@ -572,43 +586,20 @@ class PlayerUnit {
       );
     } else if (this.currentHP > this.totalHP) {
       this.currentHP = this.totalHP;
-      $hp.text(`Health: ${this.currentHP}/${this.totalHP}`);
+      $hp.text(`💖 ${this.currentHP}/${this.totalHP}`);
     } else {
-      $hp.text(`Health: ${this.currentHP}/${this.totalHP}`);
+      $hp.text(`💖 ${this.currentHP}/${this.totalHP}`);
     }
   }
 
   updateShield() {
     const $shield = game.$playerSection.find(`.unitShield.${this.name}`);
-    $shield.text(`Shield: ${this.shield}`);
+    $shield.text(`🛡️ ${this.shield}`);
   }
 
   fullHeal() {
     this.currentHP = this.totalHP;
     this.updateHP();
-  }
-
-  displayDice() {
-    const $diceModal = game.$diceModal;
-    $diceModal.find('.modal-title').text(`${this.name} Dice Info`);
-    $diceModal
-      .find('#topSide')
-      .text(`${this.dice.top.value} ${this.dice.top.type}`);
-    $diceModal
-      .find('#leftSide')
-      .text(`${this.dice.left.value} ${this.dice.left.type}`);
-    $diceModal
-      .find('#middleSide')
-      .text(`${this.dice.middle.value} ${this.dice.middle.type}`);
-    $diceModal
-      .find('#bottomSide')
-      .text(`${this.dice.bottom.value} ${this.dice.bottom.type}`);
-    $diceModal
-      .find('#rightSide')
-      .text(`${this.dice.right.value} ${this.dice.right.type}`);
-    $diceModal
-      .find('#rightMostSide')
-      .text(`${this.dice.farRight.value} ${this.dice.farRight.type}`);
   }
 }
 
@@ -630,9 +621,10 @@ class EnemyUnit {
   }
 
   showCurrentSide($unitDice) {
-    $unitDice.text(
-      `${this.dice.currentSide.value} ${this.dice.currentSide.type}`
-    );
+    // $unitDice.text(
+    //   `${this.dice.currentSide.value} ${this.dice.currentSide.type}`
+    // );
+    $unitDice.text(this.dice.displaySide(this.dice.currentSide));
   }
 
   targetPlayer() {
@@ -656,31 +648,8 @@ class EnemyUnit {
       game.enemyUnits.delete(unitId);
       game.$enemySection.find(`#${unitId}`).remove();
     } else {
-      $hp.text(`Health: ${this.currentHP}/${this.totalHP}`);
+      $hp.text(`💖 ${this.currentHP}/${this.totalHP}`);
     }
-  }
-
-  displayDice() {
-    const $diceModal = game.$diceModal;
-    $diceModal.find('.modal-title').text(`${this.name} Dice Info`);
-    $diceModal
-      .find('#topSide')
-      .text(`${this.dice.top.value} ${this.dice.top.type}`);
-    $diceModal
-      .find('#leftSide')
-      .text(`${this.dice.left.value} ${this.dice.left.type}`);
-    $diceModal
-      .find('#middleSide')
-      .text(`${this.dice.middle.value} ${this.dice.middle.type}`);
-    $diceModal
-      .find('#bottomSide')
-      .text(`${this.dice.bottom.value} ${this.dice.bottom.type}`);
-    $diceModal
-      .find('#rightSide')
-      .text(`${this.dice.right.value} ${this.dice.right.type}`);
-    $diceModal
-      .find('#rightMostSide')
-      .text(`${this.dice.farRight.value} ${this.dice.farRight.type}`);
   }
 }
 
@@ -723,6 +692,33 @@ class Dice {
         break;
     }
     return side;
+  }
+
+  displaySide(side) {
+    return `${side.value} ${this.typeEmoji(side.type)}`;
+  }
+
+  typeEmoji(type) {
+    switch (type) {
+      case 'damage':
+        return '🗡️';
+      case 'shield':
+        return '🛡️';
+      case 'heal':
+        return '❤️';
+      default:
+        return '❔';
+    }
+  }
+
+  displayDice() {
+    const $diceModal = game.$diceModal;
+    $diceModal.find('#topSide').text(this.displaySide(this.top));
+    $diceModal.find('#leftSide').text(this.displaySide(this.left));
+    $diceModal.find('#middleSide').text(this.displaySide(this.middle));
+    $diceModal.find('#bottomSide').text(this.displaySide(this.bottom));
+    $diceModal.find('#rightSide').text(this.displaySide(this.right));
+    $diceModal.find('#rightMostSide').text(this.displaySide(this.farRight));
   }
 }
 
@@ -802,11 +798,13 @@ game.$DOM.on('click', '.diceInfo', (event) => {
   if (isPlayer) {
     const unitId = $clickedElement.closest('.playerUnit').attr('id');
     const unit = game.playerUnits.get(`${unitId}`);
-    unit.displayDice();
+    game.$diceModal.find('.modal-title').text(`${unit.name} Dice Info`);
+    unit.dice.displayDice();
   } else {
     const unitId = $clickedElement.closest('.enemyUnit').attr('id');
     const unit = game.enemyUnits.get(`${unitId}`);
-    unit.displayDice();
+    game.$diceModal.find('.modal-title').text(`${unit.name} Dice Info`);
+    unit.dice.displayDice();
   }
 
   game.$diceModal.modal('show');
@@ -863,17 +861,18 @@ $('#game-reset').on('click', () => {
 });
 
 // ---------------------------------------------Reroll Button---------------------------------------------
-game.$DOM.on('click', '#reroll', async (event) => {
+game.$rerollButton.on('click', async (event) => {
   const $rerollButton = $(event.target);
   $rerollButton.prop('disabled', true);
 
   if (game.rerollsLeft > 0) {
     console.log('rerolling');
     game.playerRolls();
+    await sleep(1000);
     game.rerollsLeft--;
   }
 
-  $(`#rollCounter`).text(`Rerolls left: ${game.rerollsLeft}`);
+  $rerollButton.text(`Reroll (${game.rerollsLeft})`);
   $rerollButton.prop('disabled', false);
   if (game.rerollsLeft === 0) {
     $rerollButton.prop('disabled', true);
@@ -895,10 +894,13 @@ function sleep(ms) {
 
 async function diceAnimate($unit, $clickedElement) {
   for (let aCounter = 0; aCounter < 3; aCounter++) {
+    $clickedElement.removeClass(`dice-spin-${aCounter - 1}`);
     $unit.getRandomSide();
+    $clickedElement.addClass(`dice-spin-${aCounter}`);
     $unit.showCurrentSide($clickedElement);
     await sleep(200);
   }
+  $clickedElement.removeClass('dice-spin-2');
 }
 
 // ---------------------------------------------Set up units---------------------------------------------

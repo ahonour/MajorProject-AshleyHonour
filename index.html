@@ -59,7 +59,7 @@
         <button id="startGame" type="submit">Start Game</button>
       </form>
 
-      <button id="helpButton">Help</button>
+      <button id="helpButton" class="btn btn-info">Help</button>
     </section>
     <section id="help">
       <h2>Meow</h2>
@@ -70,25 +70,36 @@
       <p id="gameover-text"></p>
       <button id="restart">Back to Menu</button>
     </section>
+    <section id="winner">
+      <h2>Congratulations!</h2>
+      <p id="winner-text">meow</p>
+      <nav>
+        <button id="finished" class="btn btn-warning">Done Playing</button>
+        <button id="continue" class="btn btn-primary">Continue Playing</button>
+      </nav>
+    </section>
     <main id="game">
       <header id="game-header">
-        <h1>Slice and Dice</h1>
         <div id="player-info">
+          <h1>Slice and Dice</h1>
           <div id="player-name"></div>
           <div id="winstreak"></div>
         </div>
+        <div id="user-prompt"></div>
+        <button id="game-reset" class="btn btn-danger">Reset</button>
       </header>
       <section id="playerArea" class="playerArea"></section>
       <section id="rollingArea" class="rollingArea">
         <div class="enemyDiceArea"></div>
+        <div id="rerollbutton">
+          <button id="reroll" class="btn btn-dark"></button>
+        </div>
       </section>
       <section id="enemyArea" class="enemyArea"></section>
-      <button id="reroll">reroll</button>
-      <div id="rollCounter">Rerolls left: 2</div>
-      <button id="endTurn">end turn</button>
+
       <footer>
-        <button id="game-help">Gwehh</button>
-        <button id="game-reset">Meowww</button>
+        <button id="game-help" class="btn btn-info">Help</button>
+        <button id="endTurn" class="btn btn-success">End turn</button>
       </footer>
     </main>
 
