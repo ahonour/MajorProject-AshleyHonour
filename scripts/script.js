@@ -52,9 +52,232 @@ const game = {
     game.difficultySetup();
     game.rerollsLeft = game.maxRerolls;
     game.rewardSetup();
-    playerSetup();
+    game.playerSetup();
     game.$rerollButton.text(`Reroll (${game.rerollsLeft})`);
     game.nextFight();
+  },
+
+  playerSetup() {
+    const damageUnit = Math.floor(Math.random() * 3);
+    const healUnit = Math.floor(Math.random() * 3);
+    const shieldUnit = Math.floor(Math.random() * 3);
+
+    game.generateAttacker(damageUnit);
+    game.generateHealer(healUnit);
+    game.generateDefender(shieldUnit);
+
+    // const p1Top = new DiceSide(2, 'damage');
+    // const p1Middle = new DiceSide(1, 'shield');
+    // const p1Left = new DiceSide(4, 'damage');
+    // const p1Right = new DiceSide(3, 'damage');
+    // const p1Bottom = new DiceSide(5, 'damage');
+    // const p1farRight = new DiceSide(6, 'damage');
+    // const p3farRight = new DiceSide(1, 'shield');
+
+    // const p1Dice = new Dice(
+    //   p1Top,
+    //   p1Left,
+    //   p1Middle,
+    //   p1Bottom,
+    //   p1Right,
+    //   p1farRight
+    // );
+    // const p2Dice = new Dice(
+    //   p1Top,
+    //   p1Left,
+    //   p1Middle,
+    //   p1Bottom,
+    //   p1Right,
+    //   p1farRight
+    // );
+    // const p3Dice = new Dice(
+    //   p1Middle,
+    //   p1Middle,
+    //   p1Middle,
+    //   p1Middle,
+    //   p1Middle,
+    //   p3farRight
+    // );
+    // const p1 = new PlayerUnit('Ashley', 10, p1Dice);
+    // const p2 = new PlayerUnit('Jevan', 4, p2Dice);
+    // const p3 = new PlayerUnit('Podenco', 2, p3Dice);
+  },
+
+  generateAttacker(rand) {
+    switch (rand) {
+      case 0:
+        const p1Top1 = new DiceSide(2, 'damage');
+        const p1Middle1 = new DiceSide(1, 'shield');
+        const p1Left1 = new DiceSide(4, 'damage');
+        const p1Right1 = new DiceSide(3, 'damage');
+        const p1Bottom1 = new DiceSide(5, 'damage');
+        const p1farRight1 = new DiceSide(6, 'damage');
+
+        const p1Dice1 = new Dice(
+          p1Top1,
+          p1Left1,
+          p1Middle1,
+          p1Bottom1,
+          p1Right1,
+          p1farRight1
+        );
+        new PlayerUnit('Ashley', 10, p1Dice1);
+        break;
+      case 1:
+        const p1Top2 = new DiceSide(2, 'damage');
+        const p1Middle2 = new DiceSide(1, 'shield');
+        const p1Left2 = new DiceSide(4, 'damage');
+        const p1Right2 = new DiceSide(3, 'damage');
+        const p1Bottom2 = new DiceSide(5, 'damage');
+        const p1farRight2 = new DiceSide(6, 'damage');
+
+        const p1Dice2 = new Dice(
+          p1Top2,
+          p1Left2,
+          p1Middle2,
+          p1Bottom2,
+          p1Right2,
+          p1farRight2
+        );
+        new PlayerUnit('Ashley', 9, p1Dice2);
+        break;
+      case 2:
+        const p1Top3 = new DiceSide(2, 'damage');
+        const p1Middle3 = new DiceSide(1, 'shield');
+        const p1Left3 = new DiceSide(4, 'damage');
+        const p1Right3 = new DiceSide(3, 'damage');
+        const p1Bottom3 = new DiceSide(5, 'damage');
+        const p1farRight3 = new DiceSide(6, 'damage');
+
+        const p1Dice3 = new Dice(
+          p1Top3,
+          p1Left3,
+          p1Middle3,
+          p1Bottom3,
+          p1Right3,
+          p1farRight3
+        );
+        new PlayerUnit('Ashley', 8, p1Dice3);
+        break;
+    }
+  },
+
+  generateDefender(rand) {
+    switch (rand) {
+      case 0:
+        const p2Top1 = new DiceSide(2, 'damage');
+        const p2Middle1 = new DiceSide(1, 'shield');
+        const p2Left1 = new DiceSide(4, 'damage');
+        const p2Right1 = new DiceSide(3, 'damage');
+        const p2Bottom1 = new DiceSide(5, 'damage');
+        const p2farRight1 = new DiceSide(6, 'damage');
+
+        const p2Dice1 = new Dice(
+          p2Top1,
+          p2Left1,
+          p2Middle1,
+          p2Bottom1,
+          p2Right1,
+          p2farRight1
+        );
+        new PlayerUnit('Jevan', 4, p2Dice1);
+        break;
+      case 1:
+        const p2Top2 = new DiceSide(2, 'damage');
+        const p2Middle2 = new DiceSide(1, 'shield');
+        const p2Left2 = new DiceSide(4, 'damage');
+        const p2Right2 = new DiceSide(3, 'damage');
+        const p2Bottom2 = new DiceSide(5, 'damage');
+        const p2farRight2 = new DiceSide(6, 'damage');
+
+        const p2Dice2 = new Dice(
+          p2Top2,
+          p2Left2,
+          p2Middle2,
+          p2Bottom2,
+          p2Right2,
+          p2farRight2
+        );
+        new PlayerUnit('Jevan', 5, p2Dice2);
+        break;
+      case 2:
+        const p2Top3 = new DiceSide(2, 'damage');
+        const p2Middle3 = new DiceSide(1, 'shield');
+        const p2Left3 = new DiceSide(4, 'damage');
+        const p2Right3 = new DiceSide(3, 'damage');
+        const p2Bottom3 = new DiceSide(5, 'damage');
+        const p2farRight3 = new DiceSide(6, 'damage');
+
+        const p2Dice3 = new Dice(
+          p2Top3,
+          p2Left3,
+          p2Middle3,
+          p2Bottom3,
+          p2Right3,
+          p2farRight3
+        );
+        new PlayerUnit('Jevan', 6, p2Dice3);
+        break;
+    }
+  },
+
+  generateHealer(rand) {
+    switch (rand) {
+      case 0:
+        const p3Top1 = new DiceSide(2, 'heal');
+        const p3Middle1 = new DiceSide(1, 'heal');
+        const p3Left1 = new DiceSide(4, 'heal');
+        const p3Right1 = new DiceSide(3, 'heal');
+        const p3Bottom1 = new DiceSide(5, 'heal');
+        const p3farRight1 = new DiceSide(6, 'heal');
+
+        const p3Dice1 = new Dice(
+          p3Top1,
+          p3Left1,
+          p3Middle1,
+          p3Bottom1,
+          p3Right1,
+          p3farRight1
+        );
+        new PlayerUnit('Podenco', 2, p3Dice1);
+        break;
+      case 1:
+        const p3Top2 = new DiceSide(2, 'heal');
+        const p3Middle2 = new DiceSide(1, 'heal');
+        const p3Left2 = new DiceSide(4, 'heal');
+        const p3Right2 = new DiceSide(3, 'heal');
+        const p3Bottom2 = new DiceSide(5, 'heal');
+        const p3farRight2 = new DiceSide(6, 'heal');
+
+        const p3Dice2 = new Dice(
+          p3Top2,
+          p3Left2,
+          p3Middle2,
+          p3Bottom2,
+          p3Right2,
+          p3farRight2
+        );
+        new PlayerUnit('Podenco', 3, p3Dice2);
+        break;
+      case 2:
+        const p3Top3 = new DiceSide(2, 'heal');
+        const p3Middle3 = new DiceSide(1, 'heal');
+        const p3Left3 = new DiceSide(4, 'heal');
+        const p3Right3 = new DiceSide(3, 'heal');
+        const p3Bottom3 = new DiceSide(5, 'heal');
+        const p3farRight3 = new DiceSide(6, 'heal');
+
+        const p3Dice3 = new Dice(
+          p3Top3,
+          p3Left3,
+          p3Middle3,
+          p3Bottom3,
+          p3Right3,
+          p3farRight3
+        );
+        new PlayerUnit('Podenco', 4, p3Dice3);
+        break;
+    }
   },
 
   difficultySetup() {
@@ -905,43 +1128,6 @@ async function diceAnimate($unit, $clickedElement) {
 }
 
 // ---------------------------------------------Set up units---------------------------------------------
-function playerSetup() {
-  const p1Top = new DiceSide(2, 'damage');
-  const p1Middle = new DiceSide(1, 'shield');
-  const p1Left = new DiceSide(4, 'damage');
-  const p1Right = new DiceSide(3, 'damage');
-  const p1Bottom = new DiceSide(5, 'damage');
-  const p1farRight = new DiceSide(6, 'damage');
-  const p3farRight = new DiceSide(1, 'shield');
-
-  const p1Dice = new Dice(
-    p1Top,
-    p1Left,
-    p1Middle,
-    p1Bottom,
-    p1Right,
-    p1farRight
-  );
-  const p2Dice = new Dice(
-    p1Top,
-    p1Left,
-    p1Middle,
-    p1Bottom,
-    p1Right,
-    p1farRight
-  );
-  const p3Dice = new Dice(
-    p1Middle,
-    p1Middle,
-    p1Middle,
-    p1Middle,
-    p1Middle,
-    p3farRight
-  );
-  const p1 = new PlayerUnit('Ashley', 10, p1Dice);
-  const p2 = new PlayerUnit('Jevan', 4, p2Dice);
-  const p3 = new PlayerUnit('Podenco', 2, p3Dice);
-}
 
 function generateGoblin() {
   const gobTop = new DiceSide(4 + game.enemyDamageModifier, 'damage');
