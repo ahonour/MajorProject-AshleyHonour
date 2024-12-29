@@ -249,7 +249,7 @@ const game = {
   },
 
   playerEndRolls() {
-    console.log('all units locked moving to action phase');
+    game.$rerollButton.prop('disabled', true);
     game.turnPhase = 'playerAction';
     game.playerActions = game.alivePlayerUnits.length;
     game.playerDicePrompt();
@@ -313,7 +313,6 @@ const game = {
 
     game.playerActions--;
     if (game.playerActions === 0) {
-      console.log('player out of actions, it is now the enemy turn');
       game.$userPrompt.text('Click on the end turn button to proceed');
       game.$DOM.find('#endTurn').addClass('dicePrompt');
       game.turnPhase = 'enemyAttack';
@@ -451,13 +450,13 @@ const game = {
 // ---------------------------------------------Landing Screen Object---------------------------------------------
 const landing = {
   $DOM: $('#landing'),
-  $startForm: $('#startForm'),
+  $startForm: $('#start-form'),
   $startButton: $('#startGame'),
   $playerName: $('#playerName'),
   $easyButton: $('#easy'),
   $mediumButton: $('#medium'),
   $hardButton: $('#hard'),
-  $helpButton: $('#helpButton'),
+  $helpButton: $('#help-button'),
   $difficultyExplanation: $('#difficultyExplanation'),
   difficultySelected: '',
 
@@ -531,7 +530,7 @@ help.$return.on('click', () => {
     game.$DOM.css('display', 'grid');
   } else {
     help.$DOM.css('display', 'none');
-    landing.$DOM.css('display', 'block');
+    landing.$DOM.css('display', 'flex');
   }
 });
 
@@ -544,7 +543,7 @@ const gameover = {
 // ---------------------------------------------Game Over Screen Click---------------------------------------------
 gameover.$restart.on('click', () => {
   gameover.$DOM.css('display', 'none');
-  landing.$DOM.css('display', 'block');
+  landing.$DOM.css('display', 'flex');
   game.$userPrompt.css('opacity', 0);
 });
 
@@ -984,5 +983,5 @@ function generateBee() {
 
 // ---------------------------------------------Game Start-----------------------------------------------
 $(document).ready(async () => {
-  landing.$DOM.css('display', 'block');
+  landing.$DOM.css('display', 'flex');
 });
