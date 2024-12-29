@@ -217,6 +217,7 @@ const game = {
     game.$rerollButton.text(`Reroll (${game.rerollsLeft})`);
     game.$rerollButton.prop('disabled', false);
     game.turnPhase = 'playerRolling';
+    game.$userPrompt.css('opacity', 1);
     game.$userPrompt.text(
       'Roll your dice and click on them to lock your selection'
     );
@@ -544,6 +545,7 @@ const gameover = {
 gameover.$restart.on('click', () => {
   gameover.$DOM.css('display', 'none');
   landing.$DOM.css('display', 'block');
+  game.$userPrompt.css('opacity', 0);
 });
 
 // ---------------------------------------------Winner Screen Object---------------------------------------------

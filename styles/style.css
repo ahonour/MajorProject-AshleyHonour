@@ -1,6 +1,7 @@
 :root {
-  --ashley: rgb(199, 97, 162);
-  --jevan: rgba(82, 14, 14, 0.817);
+  --ashley: rgba(199, 97, 161, 0.4);
+  --jevan: rgba(82, 14, 14, 0.4);
+  --podenco: rgba(146, 136, 46, 0.4);
 }
 
 /* Simple CSS Reset */
@@ -82,7 +83,13 @@ body {
     'header header header'
     'playerArea diceArea enemyArea'
     'footer footer footer';
-  background-color: rgba(127, 115, 115, 0.594);
+  background: rgb(64, 213, 190);
+  background: linear-gradient(
+    128deg,
+    rgba(64, 213, 190, 1) 12%,
+    rgba(255, 94, 232, 1) 51%,
+    rgba(150, 171, 127, 1) 89%
+  );
 }
 
 #help {
@@ -147,7 +154,6 @@ main > #game-header {
   height: 100%;
   grid-area: header;
   text-align: center;
-  background-color: rgba(127, 255, 212, 0.605);
   display: flex;
   justify-content: space-between;
 }
@@ -156,9 +162,10 @@ main > #game-header {
   text-align: left;
   margin-top: 1rem;
   margin-left: 1rem;
-  background-color: rosybrown;
+  background-color: rgb(202, 125, 125);
   height: fit-content;
   padding: 1rem;
+  border-radius: 20px;
 }
 
 #user-prompt {
@@ -168,11 +175,13 @@ main > #game-header {
   transform: translateX(-50%);
   width: 30vw;
   height: 100px;
-  background-color: rgba(23, 87, 23, 0.797);
+  background-color: rgba(209, 57, 138, 0.587);
   border-radius: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 0;
+  transition: all 1.5s ease-in-out;
 }
 
 #game-reset {
@@ -208,9 +217,10 @@ main > #game-header {
     'gamebutton gamebutton';
   padding: 0.6rem 2rem;
   border: 2px solid black;
+  background-color: rgba(245, 245, 245, 0.509);
 }
 
-.rollingArea > .Ashley {
+/* .rollingArea > .Ashley {
   grid-area: player1;
   display: flex;
   align-self: flex-start;
@@ -228,7 +238,7 @@ main > #game-header {
   grid-area: player3;
   display: flex;
   align-self: flex-end;
-}
+} */
 
 .rollingArea > .enemyDiceArea {
   grid-area: enemy;
@@ -271,6 +281,7 @@ main > #game-header {
   padding: 0.2rem;
   border-radius: 15px;
   align-items: center;
+  background-color: rgba(243, 198, 76, 0.539);
 }
 
 .enemyUnit {
@@ -304,7 +315,7 @@ main > #game-header {
   margin: 0.2rem;
   border-radius: 50%;
   background-color: rgba(32, 178, 171, 0.712);
-  box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.5);
+  box-shadow: 1px 1px 3px 0 rgba(0, 0, 0, 0.5);
   border: none;
 }
 
@@ -323,6 +334,7 @@ main > #game-header {
   display: flex;
   justify-content: center;
   align-items: center;
+  /* background-color: rgba(245, 245, 245, 0.509); */
 }
 
 .playerHighlight {
@@ -352,7 +364,6 @@ footer {
   display: flex;
   justify-content: space-evenly;
   align-items: center;
-  background-color: rgba(127, 255, 212, 0.605);
 }
 
 #playerUnit0 {
@@ -436,4 +447,16 @@ footer {
   justify-content: space-evenly;
   width: 100%;
   margin-bottom: 1rem;
+}
+
+.playerDice.Ashley {
+  background-color: var(--ashley);
+}
+
+.playerDice.Jevan {
+  background-color: var(--jevan);
+}
+
+.playerDice.Podenco {
+  background-color: var(--podenco);
 }
