@@ -37,6 +37,13 @@ body {
   );
 }
 
+#landing,
+#help,
+#gameover,
+#winner {
+  box-shadow: 4px 4px 10px 1px rgba(0, 0, 0, 0.5);
+}
+
 #landing {
   display: none;
   margin: auto;
@@ -44,7 +51,6 @@ body {
   height: 90vh;
   background-color: rgba(49, 92, 208, 0.587);
   flex-direction: column;
-  box-shadow: 4px 4px 10px 1px rgba(0, 0, 0, 0.5);
 }
 
 #landing > h2 {
@@ -56,9 +62,9 @@ body {
 
 #landing p,
 #landing button,
-#landing form,
-#landing input {
+#landing form {
   text-align: center;
+  margin: 0 1rem;
 }
 
 #start-form {
@@ -386,6 +392,16 @@ main > #game-header {
   transition: all 0.5s ease-in-out;
 }
 
+.end-turn-prompt {
+  border: 3px solid rgb(48, 110, 186) !important;
+  transform: scaleX(1.25) scaleY(1.25);
+  transition: all 0.5s ease-in-out !important;
+}
+
+#endTurn {
+  transition: all 0.5s ease-in-out !important;
+}
+
 #rollingArea > .game-buttons {
   grid-area: gamebutton;
   display: flex;
@@ -497,4 +513,8 @@ footer {
 .playerDice.Podenco {
   background-color: var(--podenco);
   grid-area: player3;
+}
+
+.dead-unit {
+  background-color: rgba(75, 73, 73, 0.5) !important;
 }

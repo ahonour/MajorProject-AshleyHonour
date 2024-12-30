@@ -2,24 +2,26 @@
 
 // ---------------------------------------------Game Object---------------------------------------------
 const game = {
-  title: 'Slice and Dice',
-  playerName: '',
-  difficulty: 'medium',
-  isRunning: false,
-  playerUnits: new Map(),
-  alivePlayerUnits: [],
-  enemyUnits: new Map(),
-  rewardsList: [],
-  currentRewards: [],
-  fightNumber: 0,
-  turnPhase: 'playerRolling',
-  rerollsLeft: 2,
-  maxRerolls: 2,
-  enemyHpModifier: 0,
-  enemyDamageModifier: 0,
-  activePlayerUnit: null,
-  playerActions: null,
-  winstreak: 0,
+  title: 'Slice and Dice', // Game title
+  playerName: '', // User input name
+  difficulty: 'medium', // Default difficulty
+  isRunning: false, // Game state
+  playerUnits: new Map(), // Player units, map used for easier reference
+  alivePlayerUnits: [], // Array of alive player units
+  enemyUnits: new Map(), // Enemy units, map used for easier reference
+  rewardsList: [], // Array of post-fight rewards to power up the player
+  currentRewards: [], // Array of 3 randomly selected rewards for the player to choose from
+  fightNumber: 0, // Counter for the current fight
+  turnPhase: 'playerRolling', // Phase of the turn, used to determine what the player can do
+  rerollsLeft: 2, // Number of remaining rerolls left for the turn
+  maxRerolls: 2, // Maximum number of rerolls allowed per turn
+  enemyHpModifier: 0, // Modifier for enemy HP, used in difficulty scaling and rewards
+  enemyDamageModifier: 0, // Modifier for enemy damage, used in difficulty scaling and rewards
+  activePlayerUnit: null, // The player unit who's dice is currently being used
+  playerActions: null, // Number of actions the player has left in the turn
+  winstreak: 0, // Number of game wins in a row (not fights)
+
+  // JQuery DOM elements
   $DOM: $('#game'),
   $playerName: $('#player-name'),
   $winstreak: $('#winstreak'),
@@ -32,14 +34,16 @@ const game = {
   $userPrompt: $('#user-prompt'),
 
   async gameStart() {
-    game.gameReset();
-
-    game.rewardSetup();
-    game.playerSetup();
+    game.gameReset(); // Reset game variables
+    if (this.rewardsList.length === 0) {
+      game.rewardSetup(); // Generate rewards if it hasn't been done yet
+    }
+    game.playerSetup(); // Generate player units
     game.$rerollButton.text(`Reroll (${game.rerollsLeft})`);
-    game.nextFight();
+    game.nextFight(); // Start the first fight
   },
 
+  // Reset game variables
   gameReset() {
     game.playerName = landing.$playerName.val();
     game.$playerName.text(game.playerName);
@@ -51,7 +55,6 @@ const game = {
     game.playerUnits.clear();
     game.alivePlayerUnits = [];
     game.enemyUnits.clear();
-    game.rewardsList = [];
     game.currentRewards = [];
     game.fightNumber = 0;
     game.turnPhase = 'playerRolling';
@@ -63,6 +66,7 @@ const game = {
     game.rerollsLeft = game.maxRerolls;
   },
 
+  // Randomly generate the player units from a few options
   playerSetup() {
     const damageUnit = Math.floor(Math.random() * 3);
     const shieldUnit = Math.floor(Math.random() * 3);
@@ -71,44 +75,9 @@ const game = {
     game.generateAttacker(damageUnit);
     game.generateDefender(shieldUnit);
     game.generateHealer(healUnit);
-
-    // const p1Top = new DiceSide(2, 'damage');
-    // const p1Middle = new DiceSide(1, 'shield');
-    // const p1Left = new DiceSide(4, 'damage');
-    // const p1Right = new DiceSide(3, 'damage');
-    // const p1Bottom = new DiceSide(5, 'damage');
-    // const p1farRight = new DiceSide(6, 'damage');
-    // const p3farRight = new DiceSide(1, 'shield');
-
-    // const p1Dice = new Dice(
-    //   p1Top,
-    //   p1Left,
-    //   p1Middle,
-    //   p1Bottom,
-    //   p1Right,
-    //   p1farRight
-    // );
-    // const p2Dice = new Dice(
-    //   p1Top,
-    //   p1Left,
-    //   p1Middle,
-    //   p1Bottom,
-    //   p1Right,
-    //   p1farRight
-    // );
-    // const p3Dice = new Dice(
-    //   p1Middle,
-    //   p1Middle,
-    //   p1Middle,
-    //   p1Middle,
-    //   p1Middle,
-    //   p3farRight
-    // );
-    // const p1 = new PlayerUnit('Ashley', 10, p1Dice);
-    // const p2 = new PlayerUnit('Jevan', 4, p2Dice);
-    // const p3 = new PlayerUnit('Podenco', 2, p3Dice);
   },
 
+  // Assemble the player object, on construction, calls addNewUnit()
   generateAttacker(rand) {
     switch (rand) {
       case 0:
@@ -167,7 +136,7 @@ const game = {
         break;
     }
   },
-
+  // Assemble the player object, on construction, calls addNewUnit()
   generateDefender(rand) {
     switch (rand) {
       case 0:
@@ -226,7 +195,7 @@ const game = {
         break;
     }
   },
-
+  // Assemble the player object, on construction, calls addNewUnit()
   generateHealer(rand) {
     switch (rand) {
       case 0:
@@ -286,6 +255,7 @@ const game = {
     }
   },
 
+  // Apply the chosen difficulty settings
   difficultySetup() {
     switch (game.difficulty) {
       case 'easy':
@@ -303,6 +273,7 @@ const game = {
     }
   },
 
+  // Generate the rewards that can be chosen from after a successful fight
   rewardSetup() {
     const healReward = new Reward(
       'All healing sides +1',
@@ -340,37 +311,41 @@ const game = {
 
   addNewUnit(newUnit) {
     if (newUnit.ally) {
-      const playerId = `player_${newUnit.name}_${this.playerUnits.size}`;
-      this.playerUnits.set(playerId, newUnit);
-      this.alivePlayerUnits.push(newUnit);
-      const playerNum = this.playerUnits.size - 1;
+      // Check if the unit is an ally or enemy
+      const playerId = `player_${newUnit.name}_${this.playerUnits.size}`; // Generate a unique id for the unit
+      newUnit.id = playerId; // Assign the id to the object for later reference
+      this.playerUnits.set(playerId, newUnit); // Add the unit to the playerUnits map
+      this.alivePlayerUnits.push(newUnit); // Also add the unit to the alivePlayerUnits array
+      const playerNum = this.playerUnits.size - 1; // Used for placing on the grid
+      // Create the HTML elements for the unit
       const playerName = `<div class="unitName">${newUnit.name}</div>`;
-      const playerHP = `<div class="unitHP ${newUnit.name}">💖 ${newUnit.currentHP}/${newUnit.totalHP}</div>`;
+      const playerHP = `<div class="unitHP ${newUnit.name}">❤️ ${newUnit.currentHP}/${newUnit.totalHP}</div>`;
       const playerShield = `<div class="unitShield ${newUnit.name}">🛡️ 0</div>`;
       const playerInfo = `<div class="unitInfo">${playerName}${playerHP}${playerShield}</div>`;
       const playerDice = `<div class="playerDice ${newUnit.name}" id='playerDice${playerNum}'></div>`;
       const diceInfo = `<button class= "diceInfo ${newUnit.name}">?</button>`;
       const newUnitTotal = `<div class="playerUnit ${newUnit.name}" id='${playerId}'>${playerInfo}${playerDice}${diceInfo}</div>`;
-      this.$playerSection.append(newUnitTotal);
-      newUnit.id = playerId;
-      // this.createRollingDice(newUnit);
+
+      this.$playerSection.append(newUnitTotal); // Append the unit to the player section
     } else {
+      // Same as above but for enemy units
       const enemyId = `enemy_${newUnit.name}_${this.enemyUnits.size}`;
+      newUnit.id = enemyId;
       this.enemyUnits.set(enemyId, newUnit);
       const enemyName = `<div class="unitName">${newUnit.name}</div>`;
-      const enemyHP = `<div class="unitHP ${newUnit.name}">💖 ${newUnit.currentHP}/${newUnit.totalHP}</div>`;
+      const enemyHP = `<div class="unitHP ${newUnit.name}">❤️ ${newUnit.currentHP}/${newUnit.totalHP}</div>`;
       const target = `<div class="targeting ${newUnit.name}">Targeting: </div>`;
       const enemyInfo = `<div class="unitInfo">${enemyName}${enemyHP}${target}</div>`;
       const enemyDice = `<div class="enemyDice ${newUnit.name}" id='enemyDice${enemyId}'></div>`;
       const diceInfo = `<button class= "diceInfo ${newUnit.name}">?</button>`;
       const newUnitTotal = `<div class="enemyUnit" id='${enemyId}'>${enemyInfo}${enemyDice}${diceInfo}</div>`;
       this.$enemySection.append(newUnitTotal);
-      newUnit.id = enemyId;
-      // this.createRollingDice(newUnit);
     }
   },
 
   async enemyRolls() {
+    /* For each enemy unit, select the coorisponding dice in the rolling section
+       and animate them, then lock the dice, and target a player unit */
     for (const unitMap of game.enemyUnits) {
       const unit = unitMap[1];
       const $rollingDice = game.$rollingSection.find(`#${unitMap[0]}`);
@@ -382,16 +357,19 @@ const game = {
   },
 
   lockDice(unitMap) {
+    // Seperate the unit map
     const unitId = unitMap[0];
     const unit = unitMap[1];
     unit.dice.isLocked = true;
+    // Find the appropriate location to display the dice, depending on if it is an ally or enemy
     const unitZone = unit.ally
       ? game.$playerSection.find(`#${unitId}`).find('.playerDice')
       : game.$enemySection.find(`#${unitId}`).find('.enemyDice');
-    unit.showCurrentSide(unitZone);
+    unit.showCurrentSide(unitZone); // Display the dice
   },
 
   createRollingDice(unit) {
+    // Generate a unique id for the dice
     const diceId = unit.ally
       ? `${
           [...game.playerUnits.entries()].find(
@@ -404,6 +382,7 @@ const game = {
           )[0]
         }`;
 
+    // Create the dice element and append it to the rolling section
     const $unitRollingDice = unit.ally
       ? $(`<div class="playerDice ${unit.name}" id="${diceId}"></div>`)
       : $(`<div class="enemyDice ${unit.name}" id="${diceId}"></div>`);
@@ -414,10 +393,11 @@ const game = {
       this.$rollingSection.find('.enemyDiceArea').append($unitRollingDice);
     }
 
-    unit.getRandomSide();
-    unit.showCurrentSide($unitRollingDice);
+    unit.getRandomSide(); // Pick a random side for the dice
+    unit.showCurrentSide($unitRollingDice); // Display the dice side
   },
 
+  // For each player unit, animate the dice
   async playerRolls() {
     for (const unitMap of game.playerUnits) {
       const unit = unitMap[1];
@@ -427,25 +407,30 @@ const game = {
   },
 
   async nextTurn() {
-    game.$rerollButton.prop('disabled', true);
+    game.$rerollButton.prop('disabled', true); // Disable the reroll button
+    // Reset any shield values back to 0
     game.alivePlayerUnits.forEach((unit) => {
       unit.shield = 0;
       unit.updateShield();
     });
+    // Create the enemies' dice in the rolling area
     game.enemyUnits.forEach((unit) => {
       game.createRollingDice(unit);
     });
-    await game.enemyRolls();
+    await game.enemyRolls(); // Roll the enemies' dice
     await sleep(500);
-    //const alivePlayerUnits = game.playerUnits.filter((unit) => unit.alive);
+    // Create the players' dice for each alive unit in the rolling area
     game.alivePlayerUnits.forEach((unit) => {
       game.createRollingDice(unit);
     });
-    await game.playerRolls();
+    await game.playerRolls(); // Roll the players' dice
+    // Reset the rerolls for the turn
     game.rerollsLeft = game.maxRerolls;
     game.$rerollButton.text(`Reroll (${game.rerollsLeft})`);
     game.$rerollButton.prop('disabled', false);
     game.turnPhase = 'playerRolling';
+
+    // Update the user prompt, also have it fade in if it was hidden
     game.$userPrompt.css('opacity', 1);
     game.$userPrompt.text(
       'Roll your dice and click on them to lock your selection'
@@ -458,25 +443,28 @@ const game = {
       let damage = unit.dice.currentSide.value;
       let totalDamage = 0;
       if (target.shield > damage) {
+        // If the target has more shield than the damage, only the shield is damaged (shield is removed first)
       } else {
-        totalDamage = damage - target.shield;
+        totalDamage = damage - target.shield; // Total damage is the remaining damage after the shield is removed
       }
-      target.shield = Math.max(0, target.shield - damage);
+      target.shield = Math.max(0, target.shield - damage); // Remove the shield from the target (minimum of 0)
       console.log(`target: ${target.name} for ${damage} damage`);
       console.log(`new shield value: ${target.shield}`);
       console.log(`total damage: ${totalDamage}`);
       target.currentHP -= totalDamage;
-      target.updateHP();
-      target.updateShield();
-      game.$enemySection.find(`#${unit.id}`).find('.enemyDice').empty();
+      target.updateHP(); // Update the HP display
+      target.updateShield(); // Update the shield display
+      game.$enemySection.find(`#${unit.id}`).find('.enemyDice').empty(); // Clear the dice display
     });
     if (game.alivePlayerUnits.length === 0) {
       console.log('All your units are dead, Game over :( ');
+      game.gameover(); // If all player units are dead, end the game
     } else {
-      game.nextTurn();
+      game.nextTurn(); // Otherwise, start the next turn
     }
   },
 
+  // Once all player Dice are locked, prompt the player to select an action
   playerEndRolls() {
     game.$rerollButton.prop('disabled', true);
     game.turnPhase = 'playerAction';
@@ -484,6 +472,7 @@ const game = {
     game.playerDicePrompt();
   },
 
+  // Select each alice unit that still has a locked (unused) dice and prompt the player to select an action
   playerDicePrompt() {
     const remainingUnits = game.alivePlayerUnits.filter(
       (unit) => unit.dice.isLocked
@@ -498,15 +487,19 @@ const game = {
 
   usePlayerDice(playerId) {
     const playerUnit = game.playerUnits.get(playerId);
+
+    // Clear the dice prompt class
     game.$playerSection
       .find(`#${playerId} .playerDice`)
       .removeClass('dicePrompt');
+    // If the dice is an attack, prompt the player to select an enemy unit to attack
     if (playerUnit.dice.currentSide.type === 'damage') {
       console.log('click on an enemy unit to attack them');
       game.$enemySection.find('.enemyUnit').addClass('enemyHighlight');
       game.$userPrompt.text('Click on an enemy unit to attack them');
       game.turnPhase = 'playerAttacking';
     } else {
+      // If the dice is a heal or shield, prompt the player to select an allied unit to aid
       console.log('click on an allied unit to aid them');
       Array.from(game.alivePlayerUnits.values()).forEach((unit) => {
         game.$playerSection
@@ -516,12 +509,15 @@ const game = {
       game.$userPrompt.text('Click on an allied unit to aid them');
       game.turnPhase = 'playerDefending';
     }
-    game.activePlayerUnit = playerUnit;
+    game.activePlayerUnit = playerUnit; // Note the unit who's dice is being used
   },
 
   aidPlayerUnit(targetUnit) {
+    // Get the type and value of the dice being used
     const diceType = game.activePlayerUnit.dice.currentSide.type;
     const diceValue = game.activePlayerUnit.dice.currentSide.value;
+
+    // Apply the effect of the dice to the targeted unit
     if (diceType === 'heal') {
       targetUnit.currentHP += diceValue;
       targetUnit.updateHP();
@@ -529,6 +525,8 @@ const game = {
       targetUnit.shield += diceValue;
       targetUnit.updateShield(); // TODO
     }
+
+    // Clear the used dice display and clear the active player unit
     game.$playerSection
       .find(`.playerDice.${game.activePlayerUnit.name}`)
       .empty();
@@ -537,13 +535,15 @@ const game = {
     game.$playerSection.find(`.playerDice`).removeClass('playerHighlight');
     game.activePlayerUnit = null;
 
+    // Prompt the player to select another dice if they have any remaining
     game.turnPhase = 'playerAction';
     game.playerDicePrompt();
 
-    game.playerActions--;
+    game.playerActions--; // Decrement the number of actions the player has left
+    // If the player has no actions left, prompt them to end their turn
     if (game.playerActions === 0) {
       game.$userPrompt.text('Click on the end turn button to proceed');
-      game.$DOM.find('#endTurn').addClass('dicePrompt');
+      game.$DOM.find('#endTurn').addClass('end-turn-prompt');
       game.turnPhase = 'enemyAttack';
       return;
     }
@@ -551,10 +551,13 @@ const game = {
 
   attackEnemyUnit(unitId) {
     const targetUnit = game.enemyUnits.get(`${unitId}`);
-    const diceValue = game.activePlayerUnit.dice.currentSide.value;
+    const diceValue = game.activePlayerUnit.dice.currentSide.value; // Not the power of the attack
+
+    // Apply the damage to the target unit
     targetUnit.currentHP -= diceValue;
     targetUnit.updateHP();
 
+    // Clear the used dice display and clear the active player unit
     game.$playerSection
       .find(`.playerDice.${game.activePlayerUnit.name}`)
       .empty();
@@ -567,6 +570,8 @@ const game = {
     game.turnPhase = 'playerAction';
 
     game.playerActions--;
+    // If there are no remaining enemy units, end the fight
+    // If the player has no actions left, prompt them to end their turn
     if (game.enemyUnits.size === 0) {
       console.log('All enemies dead, you won!!!!! :3 ');
       game.turnPhase = 'fightOver';
@@ -574,26 +579,30 @@ const game = {
     } else if (game.playerActions === 0) {
       console.log('player out of actions, it is now the enemy turn');
       // prompt user somehow
-      game.$DOM.find('#endTurn').addClass('dicePrompt');
+      game.$DOM.find('#endTurn').addClass('end-turn-prompt');
       game.turnPhase = 'enemyAttack';
       return;
     }
   },
 
+  // Clear any unused dice and prompts and reset some variables
   fightOver() {
     const playerDice = game.$playerSection.find('.playerDice');
     playerDice.empty();
     playerDice.removeClass('dicePrompt');
     game.activePlayerUnit = null;
     game.playerActions = 0;
-    game.$DOM.find('#endTurn').removeClass('dicePrompt');
+    game.$DOM.find('#endTurn').removeClass('end-turn-prompt');
     game.alivePlayerUnits = [];
+
+    // Revive and heal all player units, adding them to the alivePlayerUnits array
     for (const unit of game.playerUnits.values()) {
       unit.fullHeal();
       unit.alive = true;
       unit.dice.isLocked = false;
       game.alivePlayerUnits.push(unit);
     }
+    // If it was the last fight, end the game, otherwise, select the rewards and display the rewards modal
     if (game.fightNumber === 3) {
       game.isRunning = false;
       game.winstreak++;
@@ -601,6 +610,7 @@ const game = {
       winner.$DOM.css('display', 'flex');
     } else {
       game.generateRewards();
+      // Force the modal to be static and not dismissable except by selecting a reward
       game.$rewardsModal.modal({
         backdrop: 'static',
         keyboard: false,
@@ -609,6 +619,7 @@ const game = {
     }
   },
 
+  // Select 3 unique rewards from the rewards list and display them in the rewards modal
   generateRewards() {
     game.currentRewards = [];
     const reward1 =
@@ -627,6 +638,7 @@ const game = {
     game.$rewardsModal.find('#reward-3-text').text(reward3.text);
   },
 
+  // Set up the next fight and start the game loop again
   nextFight() {
     game.fightNumber++;
 
@@ -646,6 +658,7 @@ const game = {
     game.nextTurn();
   },
 
+  // Generate the enemies for the first fight from a few options
   fightOne() {
     const rand = Math.floor(Math.random() * 2);
     switch (rand) {
@@ -664,22 +677,26 @@ const game = {
     }
   },
 
+  // Generate the enemies for the second fight from a few options
   fightTwo() {
     generateGoblin();
     generateGoblin();
   },
 
+  // Generate the enemies for the third fight from a few options
   fightThree() {
     generateGoblin();
     generateGoblin();
     generateBee();
   },
 
+  // Clear some DOM elements and display the game over screen
   gameover() {
     game.isRunning = false;
     game.$playerSection.empty();
     game.$enemySection.empty();
-    game.$rollingSection.empty();
+    game.$rollingSection.find('.playerDice').remove();
+    game.$rollingSection.find('.enemyDice').remove();
     game.winstreak = 0;
     game.$DOM.css('display', 'none');
     gameover.$DOM.css('display', 'flex');
@@ -700,10 +717,11 @@ const landing = {
   difficultySelected: '',
 
   gameSetup() {
-    console.log('setting up landing screen');
     if (this.$playerName.val() === '') {
+      // Double check that the player has entered a name
       return;
     } else {
+      // Set the player name and start the game
       game.playerName = this.$playerName.val();
       this.$DOM.css('display', 'none');
       game.$DOM.css('display', 'grid');
@@ -712,16 +730,19 @@ const landing = {
     }
   },
 
+  // Set the difficulty and update the explanation text
   setEasy() {
     this.difficultySelected = 'easy';
     this.$difficultyExplanation.text('Easy: 3 rerolls');
   },
 
+  // Same as above but for medium
   setMedium() {
     this.difficultySelected = 'medium';
     this.$difficultyExplanation.text('Medium: 2 reroll');
   },
 
+  // Same as above but for hard
   setHard() {
     this.difficultySelected = 'hard';
     this.$difficultyExplanation.text('Hard: 1 reroll');
@@ -749,6 +770,7 @@ landing.$startForm.on('submit', (event) => {
   event.preventDefault();
 });
 
+// Go to the help screen
 landing.$helpButton.on('click', () => {
   landing.$DOM.css('display', 'none');
   help.$DOM.css('display', 'flex');
@@ -763,6 +785,7 @@ const help = {
 
 // ---------------------------------------------Help Screen Click---------------------------------------------
 
+// Return to the landing screen or game screen depending on if the game is running
 help.$return.on('click', () => {
   if (game.isRunning) {
     help.$DOM.css('display', 'none');
@@ -813,43 +836,53 @@ class PlayerUnit {
     this.name = name;
     this.currentHP = health;
     this.totalHP = health;
-    this.dice = dice; // Make a function to randomly generate
+    this.dice = dice;
     this.ally = true;
     this.alive = true;
     this.shield = 0;
     this.id;
-    game.addNewUnit(this);
+    game.addNewUnit(this); // Add the unit to the game object and the DOM
   }
 
+  // Set the current side to a random side
   getRandomSide() {
     this.dice.currentSide = this.dice.randomSide();
   }
 
+  // Display the current side of the dice
   showCurrentSide($unitDice) {
     $unitDice.text(this.dice.displaySide(this.dice.currentSide));
   }
 
   updateHP() {
     const $hp = game.$playerSection.find(`.unitHP.${this.name}`);
+    // If the unit is dead, add a class to the unit and display 'Dead 💀'
     if (this.currentHP <= 0) {
-      $hp.text(`Dead :'(`);
+      $hp.closest('.playerUnit').addClass('dead-unit');
+      $hp.text(`Dead 💀`);
       this.alive = false;
       game.alivePlayerUnits = game.alivePlayerUnits.filter(
         (unit) => unit !== this
       );
+      return;
     } else if (this.currentHP > this.totalHP) {
+      // If the unit is overhealed, set the HP to the max
       this.currentHP = this.totalHP;
-      $hp.text(`💖 ${this.currentHP}/${this.totalHP}`);
+      $hp.text(`❤️ ${this.currentHP}/${this.totalHP}`);
     } else {
-      $hp.text(`💖 ${this.currentHP}/${this.totalHP}`);
+      // Otherwise, display the current HP
+      $hp.text(`❤️ ${this.currentHP}/${this.totalHP}`);
     }
+    $hp.closest('.playerUnit').removeClass('dead-unit'); // Remove the dead class if the unit is alive
   }
 
+  // Update the shield display
   updateShield() {
     const $shield = game.$playerSection.find(`.unitShield.${this.name}`);
     $shield.text(`🛡️ ${this.shield}`);
   }
 
+  // Heal the unit to full health
   fullHeal() {
     this.currentHP = this.totalHP;
     this.updateHP();
@@ -861,47 +894,48 @@ class EnemyUnit {
     this.name = name;
     this.currentHP = health;
     this.totalHP = health;
-    this.dice = dice; // Make a function to randomly generate
+    this.dice = dice;
     this.ally = false;
     this.target = null;
     this.alive = true;
     this.id;
-    game.addNewUnit(this);
+    game.addNewUnit(this); // Add the unit to the game object and the DOM
   }
 
+  // Set the current side to a random side
   getRandomSide() {
     this.dice.currentSide = this.dice.randomSide();
   }
 
+  // Display the current side of the dice
   showCurrentSide($unitDice) {
-    // $unitDice.text(
-    //   `${this.dice.currentSide.value} ${this.dice.currentSide.type}`
-    // );
     $unitDice.text(this.dice.displaySide(this.dice.currentSide));
   }
 
   targetPlayer() {
+    // Select a random player unit to target
     const alivePlayerUnits = Array.from(game.playerUnits.values()).filter(
       (unit) => unit.alive
     );
     const rand = Math.floor(Math.random() * game.alivePlayerUnits.length);
     this.target = alivePlayerUnits[rand];
+    // Display the target in the DOM
     game.$enemySection
       .find(`#${this.id}`)
       .find(`.targeting`)
       .text(`Target: ${this.target.name}`);
   }
 
+  // If the unit is dead, remove it from the game object and the DOM, otherwise, display the current HP
   updateHP() {
     const unitId = this.id;
     const $hp = game.$enemySection.find(`#${unitId}`).find('.unitHP');
     if (this.currentHP <= 0) {
-      $hp.text(`Dead :'(`);
       const unitId = this.id;
       game.enemyUnits.delete(unitId);
       game.$enemySection.find(`#${unitId}`).remove();
     } else {
-      $hp.text(`💖 ${this.currentHP}/${this.totalHP}`);
+      $hp.text(`❤️ ${this.currentHP}/${this.totalHP}`);
     }
   }
 }
@@ -918,6 +952,7 @@ class Dice {
     this.currentSide = null;
   }
 
+  // Pick a random side from the dice
   randomSide() {
     const rand = Math.floor(Math.random() * 6);
     let side;
@@ -947,10 +982,12 @@ class Dice {
     return side;
   }
 
+  // Display the value and type of a side using emojis
   displaySide(side) {
     return `${side.value} ${this.typeEmoji(side.type)}`;
   }
 
+  // Return an emoji based on the type of side
   typeEmoji(type) {
     switch (type) {
       case 'damage':
@@ -958,12 +995,13 @@ class Dice {
       case 'shield':
         return '🛡️';
       case 'heal':
-        return '❤️';
+        return '💖';
       default:
         return '❔';
     }
   }
 
+  // Display the value of each side in the dice modal
   displayDice() {
     const $diceModal = game.$diceModal;
     $diceModal.find('#topSide').text(this.displaySide(this.top));
@@ -975,6 +1013,7 @@ class Dice {
   }
 }
 
+// Object for each side of a dice
 class DiceSide {
   constructor(value, type) {
     this.value = value;
@@ -994,15 +1033,17 @@ class Reward {
     this.parameters = parameters;
   }
 
+  // Call the method stored in the reward object
   applyEffect() {
     this.method(this.parameters);
   }
 
   modifyByType(paramArray) {
-    const type = paramArray[0];
-    const bonus = paramArray[1];
+    const type = paramArray[0]; // Type of side to modify
+    const bonus = paramArray[1]; // Bonus to add to the side
     const sides = ['top', 'left', 'middle', 'bottom', 'right', 'farRight'];
 
+    // Iterate through all player units and add the bonus to the specified side
     game.playerUnits.forEach((unit) => {
       sides.forEach((side) => {
         if (unit.dice[side].type === type) {
@@ -1014,8 +1055,8 @@ class Reward {
   }
 
   modifyTotalHP(paramArray) {
-    const unitType = paramArray[0];
-    const bonus = paramArray[1];
+    const unitType = paramArray[0]; // Player or enemy
+    const bonus = paramArray[1]; // Amount to modify the total HP by
     if (unitType === 'player') {
       game.playerUnits.forEach((unit) => {
         unit.totalHP += bonus;
@@ -1027,6 +1068,7 @@ class Reward {
     }
   }
 
+  // Modify the number of rerolls the player has
   modifyRerolls(paramArray) {
     const bonus = paramArray;
     game.maxRerolls += bonus;
@@ -1035,25 +1077,30 @@ class Reward {
 
 // ---------------------------------------------Modal Click---------------------------------------------
 game.$rewardsModal.on('click', '.reward', (event) => {
+  // Get the number of the reward clicked indexed at 0
   const $clickedElementId = $(event.target).attr('id');
   const rewardNum = $clickedElementId.slice(-1) - 1;
   const reward = game.currentRewards[rewardNum];
-  reward.applyEffect();
+
+  reward.applyEffect(); // Apply the effect of the reward
   console.log(`clicked on reward ${rewardNum + 1}`);
   game.$rewardsModal.modal('hide');
-  game.nextFight();
+  game.nextFight(); // Start the next fight
 });
 
 game.$DOM.on('click', '.diceInfo', (event) => {
+  // Determine if the clicked element is a player or enemy unit
   const $clickedElement = $(event.target);
   const isPlayer =
     $clickedElement.closest('section').attr('id') === 'playerArea';
   if (isPlayer) {
+    // Get the id of the unit and display the dice info modal for that unit
     const unitId = $clickedElement.closest('.playerUnit').attr('id');
     const unit = game.playerUnits.get(`${unitId}`);
     game.$diceModal.find('.modal-title').text(`${unit.name} Dice Info`);
     unit.dice.displayDice();
   } else {
+    // Same as above but for enemy units
     const unitId = $clickedElement.closest('.enemyUnit').attr('id');
     const unit = game.enemyUnits.get(`${unitId}`);
     game.$diceModal.find('.modal-title').text(`${unit.name} Dice Info`);
@@ -1069,33 +1116,38 @@ game.$playerSection.on('click', '.playerDice', (event) => {
   const unitId = $clickedElement.closest('.playerUnit').attr('id');
   const playerUnit = game.playerUnits.get(`${unitId}`);
 
+  // Check the current phase of the game and act accordingly
   if (game.turnPhase === 'playerAction') {
     if (playerUnit.dice.currentSide != null) {
-      game.usePlayerDice(unitId);
+      game.usePlayerDice(unitId); // Start the process of using the dice
     }
-  } else if (game.turnPhase === 'playerDefending') {
-    game.aidPlayerUnit(playerUnit);
+  } else if (game.turnPhase === 'playerDefending' && playerUnit.alive) {
+    game.aidPlayerUnit(playerUnit); // Aid the selected player unit
   }
 });
 
 game.$rollingSection.on('click', '.playerDice', (event) => {
+  // get the information of the clicked dice
   const $clickedElement = $(event.target);
   const unitName = $clickedElement.attr('id');
   const playerMap = [...game.playerUnits.entries()].find(
     ([key, value]) => key === unitName
   );
   const playerUnit = playerMap[1];
+  // If the turn phase is player rolling and the dice is not locked, lock the dice and remove the dice from the rolling area
   if (game.turnPhase === 'playerRolling') {
     if (!playerUnit.dice.isLocked) {
       game.lockDice(playerMap);
       $clickedElement.remove();
     }
   }
+  // If all player dice are locked, prompt the player to select an action
   if (game.alivePlayerUnits.every((unit) => unit.dice.isLocked)) {
     game.playerEndRolls();
   }
 });
 
+// If the player is attacking, select an enemy unit to attack it
 game.$enemySection.on('click', '.enemyUnit', (event) => {
   const $clickedElement = $(event.target);
   const unitId = $clickedElement.closest('.enemyUnit').attr('id');
@@ -1104,47 +1156,53 @@ game.$enemySection.on('click', '.enemyUnit', (event) => {
   }
 });
 
+// Display the help screen
 $('#game-help').on('click', () => {
   game.$DOM.css('display', 'none');
   help.$DOM.css('display', 'flex');
 });
 
+// Go to the game over screen
 $('#game-reset').on('click', () => {
   game.gameover();
 });
 
 // ---------------------------------------------Reroll Button---------------------------------------------
+
 game.$rerollButton.on('click', async (event) => {
   const $rerollButton = $(event.target);
-  $rerollButton.prop('disabled', true);
+  $rerollButton.prop('disabled', true); // Temporarily disable the reroll button
 
+  // If the player has rerolls left this turn, reroll
   if (game.rerollsLeft > 0) {
-    console.log('rerolling');
     game.playerRolls();
     await sleep(1000);
     game.rerollsLeft--;
   }
 
+  // Update the reroll button text enable the button if the player has rerolls left
   $rerollButton.text(`Reroll (${game.rerollsLeft})`);
-  $rerollButton.prop('disabled', false);
-  if (game.rerollsLeft === 0) {
-    $rerollButton.prop('disabled', true);
-  }
+  game.rerollsLeft === 0
+    ? $rerollButton.prop('disabled', true)
+    : $rerollButton.prop('disabled', false);
 });
 
+// If the game phase is enemy attack, end the turn and start the enemy attack phase
 game.$DOM.on('click', '#endTurn', (event) => {
   const $endTurnButton = $(event.target);
   if (game.turnPhase === 'enemyAttack') {
-    $endTurnButton.removeClass('dicePrompt');
+    $endTurnButton.removeClass('end-turn-prompt');
     game.enemyAttack();
   }
 });
 
 // ---------------------------------------------Animation---------------------------------------------
+// Wait for a set amount of time
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Simulate a dice roll animation by showing three random sides, with classes to add more dynamism
 async function diceAnimate($unit, $clickedElement) {
   for (let aCounter = 0; aCounter < 3; aCounter++) {
     $clickedElement.removeClass(`dice-spin-${aCounter - 1}`);
@@ -1158,6 +1216,7 @@ async function diceAnimate($unit, $clickedElement) {
 
 // ---------------------------------------------Set up units---------------------------------------------
 
+// Create a goblin enemy
 function generateGoblin() {
   const gobTop = new DiceSide(4 + game.enemyDamageModifier, 'damage');
   const gobLeft = new DiceSide(4 + game.enemyDamageModifier, 'damage');
@@ -1177,6 +1236,7 @@ function generateGoblin() {
   const gob = new EnemyUnit('Goblin', 8 + game.enemyHpModifier, gobDice);
 }
 
+// Create a bee enemy
 function generateBee() {
   const beeTop = new DiceSide(2 + game.enemyDamageModifier, 'damage');
   const beeLeft = new DiceSide(4 + game.enemyDamageModifier, 'damage');
@@ -1197,6 +1257,7 @@ function generateBee() {
 }
 
 // ---------------------------------------------Game Start-----------------------------------------------
+// Start on the landing screen
 $(document).ready(async () => {
   landing.$DOM.css('display', 'flex');
 });
