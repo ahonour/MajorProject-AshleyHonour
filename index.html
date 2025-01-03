@@ -21,62 +21,112 @@
         of the rules, click the help button below. Otherwise, enter your name,
         select your difficulty and get started!
       </p>
-      <form id="start-form">
-        <input
-          type="text"
-          id="playerName"
-          placeholder="Enter your name"
-          required
-        />
-        <fieldset>
-          <legend>Difficulty</legend>
+      <div id="start-container">
+        <form id="start-form">
+          <label for="playerName">Player Name</label>
           <input
-            type="radio"
-            name="difficulty"
-            id="easy"
-            value="easy"
+            type="text"
+            id="playerName"
+            placeholder="Enter your name"
             required
           />
-          <label for="easy">Easy</label>
-          <input
-            type="radio"
-            name="difficulty"
-            id="medium"
-            value="medium"
-            required
-          />
-          <label for="medium">Medium</label>
-          <input
-            type="radio"
-            name="difficulty"
-            id="hard"
-            value="hard"
-            required
-          />
-          <label for="hard">Hard</label>
-        </fieldset>
-        <div id="difficultyExplanation"></div>
-        <button id="startGame" type="submit">Start Game</button>
-      </form>
-
-      <button id="help-button" class="btn btn-info">Help</button>
+          <fieldset>
+            <legend>Difficulty</legend>
+            <input
+              type="radio"
+              name="difficulty"
+              id="easy"
+              value="easy"
+              required
+            />
+            <label for="easy">Easy</label>
+            <input type="radio" name="difficulty" id="medium" value="medium" />
+            <label for="medium">Medium</label>
+            <input type="radio" name="difficulty" id="hard" value="hard" />
+            <label for="hard">Hard</label>
+          </fieldset>
+          <div id="difficultyExplanation"></div>
+          <button id="startGame" type="submit">Start Game</button>
+        </form>
+        <div id="landing-help">
+          <div>
+            If you need an explanation of the rules, click the help button
+            below. If you forget anything, don't worry, there is also a help
+            button on the game screen!
+          </div>
+          <button id="help-button">Help</button>
+        </div>
+      </div>
     </section>
     <section id="help">
-      <h2>Meow</h2>
-      <button id="help-return">Return</button>
+      <h2>How to play Slice and Dice</h2>
+      <p>
+        Slice and Dice is a dice-based combat game. The goal is to defeat the
+        enemy by rolling dice and using the results to attack. The game is
+        played in turns. Each turn, you will roll your dice and use the final
+        results to either attack the enemy, or help your units. The enemy will
+        then attack you. The game continues until either you or the enemy is
+        defeated.
+      </p>
+      <p>
+        Each turn, your units dice will be displayed in the center area, you may
+        choose to click the dice to "lock" them, placing them in your unit area.
+        Otherwise, click the "reroll" button to reroll every dice in the center
+        area. You may reroll only a certain number of times per turn. Rolls do
+        not carry over between turns, so keep rolling until you get the results
+        you want!
+      </p>
+      <p>
+        Once every dice is locked, click on one of your unit's dice area to use
+        them. You may only use each dice once per turn. After you have used all
+        of them, click the "End Turn" button to end your turn. The enemy will
+        then attack you, and then the next turn will begin.
+      </p>
+      <p>
+        After each fight, you will be offered a choice between three rewards.
+        These rewards will modify values in the game, either making your
+        characters stronger, or the enemies weaker.
+      </p>
+      <p>
+        The third fight will be a boss fight. The boss will be a signifigant
+        challege, you will win the game!
+      </p>
+      <div>
+        Legend for the dice sides:
+        <ul>
+          <li>💖: Healing, restores health to the target</li>
+          <li>
+            🛡️: Shield, blocks incoming damage, takes damage before health.
+            Shields reset to 0 at the start of each turn, so use it to block
+            incoming damage!
+          </li>
+          <li>🗡️: Attack, deals damage to the target</li>
+        </ul>
+        Want to see all sides of a units dice? Click on the
+        <span><button class="diceInfo">?</button></span>button beside the unit's
+        dice
+      </div>
+      <div class="button-container">
+        <button id="help-return">Return</button>
+      </div>
     </section>
     <section id="gameover">
       <h2>Game Over</h2>
-      <p id="gameover-text"></p>
-      <button id="restart">Back to Menu</button>
+      <p id="gameover-text">You have been defeated! Better luck next time.</p>
+      <div class="button-container">
+        <button id="restart">Back to Menu</button>
+      </div>
     </section>
     <section id="winner">
       <h2>Congratulations!</h2>
-      <p id="winner-text">meow</p>
-      <nav>
-        <button id="finished" class="btn btn-warning">Done Playing</button>
-        <button id="continue" class="btn btn-primary">Continue Playing</button>
-      </nav>
+      <p id="winner-text">
+        You are a master of the dice! You have slayed all the monsters I had, do
+        you want to push your luck and try again?
+      </p>
+      <div class="button-container">
+        <button id="finished">Done Playing</button>
+        <button id="continue">Continue Playing</button>
+      </div>
     </section>
     <main id="game">
       <header id="game-header">
@@ -86,20 +136,20 @@
           <div id="winstreak"></div>
         </div>
         <div id="user-prompt"></div>
-        <button id="game-reset" class="btn btn-danger">Reset</button>
+        <button id="game-reset">Reset</button>
       </header>
       <section id="playerArea" class="playerArea"></section>
       <section id="rollingArea" class="rollingArea">
         <div class="enemyDiceArea"></div>
         <div id="rerollbutton">
-          <button id="reroll" class="btn btn-dark"></button>
+          <button id="reroll"></button>
         </div>
       </section>
       <section id="enemyArea" class="enemyArea"></section>
 
       <footer>
-        <button id="game-help" class="btn btn-info">Help</button>
-        <button id="endTurn" class="btn btn-success">End turn</button>
+        <button id="game-help">Help</button>
+        <button id="endTurn">End turn</button>
       </footer>
     </main>
 
@@ -130,7 +180,7 @@
             <div id="reward-2-text">Reward 2</div>
             <div id="reward-3-text">Reward 3</div>
           </div>
-          <div class="modal-footer">
+          <div class="modal-footer" style="justify-content: space-evenly">
             <button class="btn btn-primary reward" id="reward-1">
               Reward 1
             </button>

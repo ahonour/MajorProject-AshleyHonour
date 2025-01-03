@@ -633,9 +633,9 @@ const game = {
         game.rewardsList[Math.floor(Math.random() * game.rewardsList.length)];
     } while (reward3 === reward1 || reward3 === reward2);
     game.currentRewards.push(reward1, reward2, reward3);
-    game.$rewardsModal.find('#reward-1-text').text(reward1.text);
-    game.$rewardsModal.find('#reward-2-text').text(reward2.text);
-    game.$rewardsModal.find('#reward-3-text').text(reward3.text);
+    game.$rewardsModal.find('#reward-1-text').text(`Reward 1: ${reward1.text}`);
+    game.$rewardsModal.find('#reward-2-text').text(`Reward 2: ${reward2.text}`);
+    game.$rewardsModal.find('#reward-3-text').text(`Reward 2: ${reward3.text}`);
   },
 
   // Set up the next fight and start the game loop again
@@ -717,17 +717,12 @@ const landing = {
   difficultySelected: '',
 
   gameSetup() {
-    if (this.$playerName.val() === '') {
-      // Double check that the player has entered a name
-      return;
-    } else {
-      // Set the player name and start the game
-      game.playerName = this.$playerName.val();
-      this.$DOM.css('display', 'none');
-      game.$DOM.css('display', 'grid');
-      game.isRunning = true;
-      game.gameStart();
-    }
+    // Set the player name and start the game
+    game.playerName = this.$playerName.val();
+    this.$DOM.css('display', 'none');
+    game.$DOM.css('display', 'grid');
+    game.isRunning = true;
+    game.gameStart();
   },
 
   // Set the difficulty and update the explanation text
@@ -750,9 +745,6 @@ const landing = {
 };
 
 // ---------------------------------------------Landing Screen Click---------------------------------------------
-landing.$startButton.on('click', () => {
-  landing.gameSetup();
-});
 
 landing.$easyButton.on('click', () => {
   landing.setEasy();
@@ -768,6 +760,7 @@ landing.$hardButton.on('click', () => {
 
 landing.$startForm.on('submit', (event) => {
   event.preventDefault();
+  landing.gameSetup();
 });
 
 // Go to the help screen

@@ -1,7 +1,10 @@
 :root {
-  --ashley: rgba(199, 97, 161, 0.4);
-  --jevan: rgba(25, 34, 132, 0.4);
-  --podenco: rgba(146, 136, 46, 0.4);
+  --damager: rgba(199, 97, 161, 0.4);
+  --shielder: rgba(25, 34, 132, 0.4);
+  --healer: rgba(146, 136, 46, 0.4);
+
+  --playerColour: rgba(243, 198, 76, 0.539);
+  --enemyColour: rgba(199, 134, 21, 0.507);
 }
 
 /* Simple CSS Reset */
@@ -28,47 +31,125 @@ body {
   flex-direction: column;
   min-height: 100vh;
   min-width: 900px;
-  background: rgb(64, 213, 190);
+  /* background: rgb(64, 213, 190);
   background: linear-gradient(
     128deg,
     rgba(64, 213, 190, 1) 12%,
     rgba(255, 94, 232, 1) 51%,
     rgba(150, 171, 127, 1) 89%
+  ); */
+  background: rgb(154, 245, 231);
+  background: linear-gradient(
+    128deg,
+    rgba(154, 245, 231, 1) 12%,
+    rgba(249, 186, 240, 1) 51%,
+    rgba(226, 250, 200, 1) 89%
   );
+}
+
+h2 {
+  height: fit-content;
+  text-align: center;
+  margin: 1rem auto !important;
+}
+
+span {
+  display: inline-block;
 }
 
 #landing,
 #help,
 #gameover,
 #winner {
-  box-shadow: 4px 4px 10px 1px rgba(0, 0, 0, 0.5);
-}
-
-#landing {
   display: none;
-  margin: auto;
+  position: relative;
+  box-shadow: 4px 4px 10px 1px rgba(0, 0, 0, 0.5);
   width: 60vw;
-  height: 90vh;
-  background-color: rgba(49, 92, 208, 0.587);
+  min-height: 50vh;
   flex-direction: column;
-}
-
-#landing > h2 {
-  width: 100%;
-  height: fit-content;
-  text-align: center;
+  margin: auto;
   padding: 1rem;
+  display: none;
+  color: white;
+  background-color: rgba(18, 42, 106, 0.744);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-#landing p,
-#landing button,
-#landing form {
+#help p,
+#gameover p,
+#winner p {
+  flex-grow: 1;
   text-align: center;
-  margin: 0 1rem;
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.button-container button {
+  margin-left: 0.5rem;
+}
+
+#start-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  height: max-content;
+}
+
+#start-form,
+#landing-help {
+  width: 40%;
+  height: fit-content;
+}
+
+#landing-help {
+  margin: auto 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 #start-form {
-  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+#start-form > fieldset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+#start-form > fieldset > legend,
+#start-form > label {
+  width: 100%;
+  text-align: center;
+  font-size: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+#start-form > fieldset > label {
+  margin-right: 0.4rem;
+}
+
+#start-form > div {
+  width: 100%;
+  text-align: center;
+}
+
+#landing button {
+  margin-top: 0.5rem;
+}
+
+#playerName {
+  text-align: center;
 }
 
 #easy,
@@ -108,32 +189,9 @@ body {
     'header header header'
     'playerArea diceArea enemyArea'
     'footer footer footer';
-  /* background: rgb(64, 213, 190);
-  background: linear-gradient(
-    128deg,
-    rgba(64, 213, 190, 1) 12%,
-    rgba(255, 94, 232, 1) 51%,
-    rgba(150, 171, 127, 1) 89%
-  ); */
 }
 
-#help {
-  display: none;
-  position: relative;
-  width: 60vw;
-  height: 90vh;
-  background-color: rgba(65, 225, 182, 0.705);
-  margin: auto;
-  flex-direction: column;
-}
-
-#help > h2 {
-  width: 100%;
-  height: fit-content;
-  text-align: center;
-}
-
-#help-return {
+/* #restart {
   position: absolute;
   bottom: 0;
   right: 0;
@@ -143,35 +201,7 @@ body {
   background-color: rgba(255, 255, 255, 0.705);
   align-self: flex-end;
   margin: 1rem;
-}
-
-#gameover {
-  display: none;
-  position: relative;
-  width: 60vw;
-  height: 90vh;
-  background-color: rgba(225, 65, 65, 0.705);
-  margin: auto;
-  flex-direction: column;
-}
-
-#gameover > h2 {
-  width: 100%;
-  height: fit-content;
-  text-align: center;
-}
-
-#restart {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  height: fit-content;
-  padding: 0.5rem;
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.705);
-  align-self: flex-end;
-  margin: 1rem;
-}
+} */
 
 main > #game-header {
   position: relative;
@@ -205,6 +235,7 @@ main > #game-header {
   transform: translateX(-50%);
   width: 30vw;
   height: 120px;
+  padding: 1rem;
   background-color: rgba(209, 57, 138, 0.587);
   border-radius: 15px;
   display: flex;
@@ -252,26 +283,6 @@ main > #game-header {
   background-color: rgba(245, 245, 245, 0.509);
 }
 
-/* .rollingArea > .Ashley {
-  grid-area: player1;
-  display: flex;
-  align-self: flex-start;
-  border: 3px solid var(--ashley);
-}
-
-.rollingArea > .Jevan {
-  grid-area: player2;
-  display: flex;
-  align-self: center;
-  border: 3px solid var(--jevan);
-}
-
-.rollingArea > .Podenco {
-  grid-area: player3;
-  display: flex;
-  align-self: flex-end;
-} */
-
 .rollingArea > .enemyDiceArea {
   grid-area: enemy;
   display: flex;
@@ -317,11 +328,11 @@ main > #game-header {
 
 .enemyUnit {
   height: 95px;
-  background-color: rgba(199, 134, 21, 0.507);
+  background-color: var(--enemyColour);
 }
 
 .playerUnit {
-  background-color: rgba(243, 198, 76, 0.539);
+  background-color: var(--playerColour);
 }
 
 .unitInfo {
@@ -342,6 +353,17 @@ main > #game-header {
 .unitShield {
   color: rgba(0, 106, 255, 0.776);
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+button {
+  padding: 0.3rem 0.5rem;
+  border-radius: 10px !important;
+}
+
+#reroll {
+  background-color: rgb(0, 0, 0);
+  color: white;
+  border: none;
 }
 
 .diceInfo {
@@ -387,13 +409,13 @@ main > #game-header {
 }
 
 .dicePrompt {
-  border: 3px solid rgb(16, 158, 103);
+  border: 3px solid rgb(218, 151, 18);
   transform: scaleX(1.15) scaleY(1.15);
   transition: all 0.5s ease-in-out;
 }
 
 .end-turn-prompt {
-  border: 3px solid rgb(48, 110, 186) !important;
+  border: 3px solid rgb(0, 0, 0) !important;
   transform: scaleX(1.25) scaleY(1.25);
   transition: all 0.5s ease-in-out !important;
 }
@@ -419,7 +441,7 @@ footer {
 
 #playerUnit0 {
   /* border: 3px solid rgb(199, 97, 162); */
-  border: 3px solid var(--ashley);
+  border: 3px solid var(--damager);
 }
 
 #playerUnit1 {
@@ -472,23 +494,6 @@ footer {
   grid-area: bottomSide;
 }
 
-#winner {
-  display: none;
-  position: relative;
-  width: 60vw;
-  height: 90vh;
-  background-color: rgba(65, 225, 182, 0.705);
-  margin: auto;
-  flex-direction: column;
-}
-
-#winner > h2 {
-  width: 100%;
-  height: fit-content;
-  text-align: center;
-  margin: 1rem;
-}
-
 #winner > #winner-text {
   flex-grow: 1;
 }
@@ -500,18 +505,22 @@ footer {
   margin-bottom: 1rem;
 }
 
+/* #help-return {
+  align-self: flex-end;
+} */
+
 .playerDice.Ashley {
-  background-color: var(--ashley);
+  background-color: var(--damager);
   grid-area: player1;
 }
 
 .playerDice.Jevan {
-  background-color: var(--jevan);
+  background-color: var(--shielder);
   grid-area: player2;
 }
 
 .playerDice.Podenco {
-  background-color: var(--podenco);
+  background-color: var(--healer);
   grid-area: player3;
 }
 
