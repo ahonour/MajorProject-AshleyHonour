@@ -31,13 +31,6 @@ body {
   flex-direction: column;
   min-height: 100vh;
   min-width: 900px;
-  /* background: rgb(64, 213, 190);
-  background: linear-gradient(
-    128deg,
-    rgba(64, 213, 190, 1) 12%,
-    rgba(255, 94, 232, 1) 51%,
-    rgba(150, 171, 127, 1) 89%
-  ); */
   background: rgb(154, 245, 231);
   background: linear-gradient(
     128deg,
@@ -190,18 +183,6 @@ span {
     'playerArea diceArea enemyArea'
     'footer footer footer';
 }
-
-/* #restart {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  height: fit-content;
-  padding: 0.5rem;
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.705);
-  align-self: flex-end;
-  margin: 1rem;
-} */
 
 main > #game-header {
   position: relative;
@@ -411,7 +392,7 @@ button {
 }
 
 .dicePrompt {
-  border: 3px solid rgb(218, 151, 18);
+  border: 3px solid rgba(193, 36, 36, 0.74);
   transform: scaleX(1.15) scaleY(1.15);
   transition: all 0.5s ease-in-out;
 }

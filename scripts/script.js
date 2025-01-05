@@ -32,6 +32,8 @@ const game = {
   $diceModal: $('#diceModal'),
   $rerollButton: $('#reroll'),
   $userPrompt: $('#user-prompt'),
+  $helpButton: $('#game-help'),
+  $resetButton: $('#game-reset'),
 
   async gameStart() {
     game.gameReset(); // Reset game variables
@@ -476,28 +478,11 @@ const game = {
     const unitId = unitMap[0];
     const unit = unitMap[1];
     unit.dice.isLocked = true;
-    let unitZone = '';
-    if (unit.ally) {
-      unitZone = game.$playerSection.find(`#${unitId}`).find('.playerDice');
-      // unit.dice.currentSide = game.alivePlayerUnits.find(
-      //   (unit) => unit.id === unitId
-      // ).dice.currentSide;
-      console.log(
-        `Unit Map Side: ${unit.dice.currentSide.type} ${unit.dice.currentSide.value}`
-      );
-      const unitDebug = game.alivePlayerUnits.find(
-        (unit) => unit.id === unitId
-      );
-      console.log(
-        `Alive player Units Side: ${unitDebug.dice.currentSide.type} ${unitDebug.dice.currentSide.value}`
-      );
-    } else {
-      unitZone = game.$enemySection.find(`#${unitId}`).find('.enemyDice');
-    }
+
     // Find the appropriate location to display the dice, depending on if it is an ally or enemy
-    // let unitZone = unit.ally
-    //   ? game.$playerSection.find(`#${unitId}`).find('.playerDice')
-    //   : game.$enemySection.find(`#${unitId}`).find('.enemyDice');
+    let unitZone = unit.ally
+      ? game.$playerSection.find(`#${unitId}`).find('.playerDice')
+      : game.$enemySection.find(`#${unitId}`).find('.enemyDice');
     unit.showCurrentSide(unitZone); // Display the dice
   },
 
@@ -583,16 +568,13 @@ const game = {
         totalDamage = damage - target.shield; // Total damage is the remaining damage after the shield is removed
       }
       target.shield = Math.max(0, target.shield - damage); // Remove the shield from the target (minimum of 0)
-      console.log(`target: ${target.name} for ${damage} damage`);
-      console.log(`new shield value: ${target.shield}`);
-      console.log(`total damage: ${totalDamage}`);
+
       target.currentHP -= totalDamage;
       target.updateHP(); // Update the HP display
       target.updateShield(); // Update the shield display
       game.$enemySection.find(`#${unit.id}`).find('.enemyDice').empty(); // Clear the dice display
     });
     if (game.alivePlayerUnits.length === 0) {
-      console.log('All your units are dead, Game over :( ');
       game.gameover(); // If all player units are dead, end the game
     } else {
       game.nextTurn(); // Otherwise, start the next turn
@@ -629,13 +611,11 @@ const game = {
       .removeClass('dicePrompt');
     // If the dice is an attack, prompt the player to select an enemy unit to attack
     if (playerUnit.dice.currentSide.type === 'damage') {
-      console.log('click on an enemy unit to attack them');
       game.$enemySection.find('.enemyUnit').addClass('enemyHighlight');
       game.$userPrompt.text('Click on an enemy unit to attack them');
       game.turnPhase = 'playerAttacking';
     } else {
       // If the dice is a heal or shield, prompt the player to select an allied unit to aid
-      console.log('click on an allied unit to aid them');
       Array.from(game.alivePlayerUnits.values()).forEach((unit) => {
         game.$playerSection
           .find(`.playerDice.${unit.name}`)
@@ -708,11 +688,9 @@ const game = {
     // If there are no remaining enemy units, end the fight
     // If the player has no actions left, prompt them to end their turn
     if (game.enemyUnits.size === 0) {
-      console.log('All enemies dead, you won!!!!! :3 ');
       game.turnPhase = 'fightOver';
       game.fightOver();
     } else if (game.playerActions === 0) {
-      console.log('player out of actions, it is now the enemy turn');
       // prompt user somehow
       game.$DOM.find('#endTurn').addClass('end-turn-prompt');
       game.turnPhase = 'enemyAttack';
@@ -825,6 +803,7 @@ const game = {
         game.generateGoblin();
         game.generateGoblin();
         game.generateGoblin();
+        break;
       case 1:
         game.generateImp();
         game.generateBee();
@@ -844,6 +823,7 @@ const game = {
         game.generateOgre();
         break;
       case 1:
+        game.generateDemon();
         game.generateDemon();
         break;
       default:
@@ -895,7 +875,7 @@ const landing = {
   // Same as above but for medium
   setMedium() {
     this.difficultySelected = 'medium';
-    this.$difficultyExplanation.text('Medium: 2 reroll');
+    this.$difficultyExplanation.text('Medium: 2 rerolls');
   },
 
   // Same as above but for hard
@@ -1175,7 +1155,7 @@ class DiceSide {
   }
 }
 
-// ---------------------------------------------Rewards---------------------------------------------
+// ---------------------------------------------Reward Class---------------------------------------------
 
 // General Rewards: +1 All healing sides, +1 All shield sides, +1 specific side, +1 reroll, +max health, -enemy max health
 // Unit specific rewards: +1 all damage sides
@@ -1201,7 +1181,6 @@ class Reward {
     game.playerUnits.forEach((unit) => {
       sides.forEach((side) => {
         if (unit.dice[side].type === type) {
-          console.log(`adding ${bonus} to ${unit.name}'s ${type} side`);
           unit.dice[side].value += bonus;
         }
       });
@@ -1246,7 +1225,6 @@ game.$rewardsModal.on('click', '.reward', (event) => {
   const reward = game.currentRewards[rewardNum];
 
   reward.applyEffect(); // Apply the effect of the reward
-  console.log(`clicked on reward ${rewardNum + 1}`);
   game.$rewardsModal.modal('hide');
   game.nextFight(); // Start the next fight
 });
@@ -1320,13 +1298,13 @@ game.$enemySection.on('click', '.enemyUnit', (event) => {
 });
 
 // Display the help screen
-$('#game-help').on('click', () => {
+game.$helpButton.on('click', () => {
   game.$DOM.css('display', 'none');
   help.$DOM.css('display', 'flex');
 });
 
 // Go to the game over screen
-$('#game-reset').on('click', () => {
+game.$resetButton.on('click', () => {
   game.gameover();
 });
 
