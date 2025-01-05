@@ -105,7 +105,7 @@ span {
 }
 
 #landing-help {
-  margin: auto 0;
+  margin: 3rem 0;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -406,6 +406,8 @@ button {
 
 .enemyHighlight {
   border: 3px solid rgb(186, 35, 103);
+  background-color: rgba(102, 18, 18, 0.521);
+  transition: all 0.5s ease-in-out;
 }
 
 .dicePrompt {
@@ -505,21 +507,23 @@ footer {
   margin-bottom: 1rem;
 }
 
-/* #help-return {
-  align-self: flex-end;
-} */
-
-.playerDice.Ashley {
+.playerDice.Gambler,
+.playerDice.Soldier,
+.playerDice.Trickster {
   background-color: var(--damager);
   grid-area: player1;
 }
 
-.playerDice.Jevan {
+.playerDice.Veteran,
+.playerDice.Cleric,
+.playerDice.Bulwark {
   background-color: var(--shielder);
   grid-area: player2;
 }
 
-.playerDice.Podenco {
+.playerDice.Harmacist,
+.playerDice.Medic,
+.playerDice.Paladin {
   background-color: var(--healer);
   grid-area: player3;
 }
